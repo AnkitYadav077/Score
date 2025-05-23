@@ -1,5 +1,6 @@
 package com.Ankit.Score.Score.Controller;
 
+import com.Ankit.Score.Score.Payloads.OrderHistoryDto;
 import com.Ankit.Score.Score.Payloads.UserDto;
 import com.Ankit.Score.Score.Service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,4 +44,11 @@ public class UserController {
         List<UserDto> users = userService.getAllUser();
         return ResponseEntity.ok(users);
     }
+
+    @GetMapping("/{userId}/order-history")
+    public ResponseEntity<List<OrderHistoryDto>> getUserOrderHistory(@PathVariable Long userId) {
+        List<OrderHistoryDto> history = userService.getUserOrderHistory(userId);
+        return ResponseEntity.ok(history);
+    }
+
 }

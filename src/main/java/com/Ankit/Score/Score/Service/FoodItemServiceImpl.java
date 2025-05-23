@@ -82,6 +82,14 @@ public class FoodItemServiceImpl implements FoodItemService {
         return foodItems.stream().map(this::entityToDto).collect(Collectors.toList());
     }
 
+    @Override
+    public List<FoodItemDto> searchFood(String keyword) {
+        List<FoodItem> foodItems = foodItemRepo.findByNameContainingIgnoreCase(keyword);
+        return foodItems.stream()
+                .map(food -> modelMapper.map(food, FoodItemDto.class))
+                .collect(Collectors.toList());
+    }
+
     // Converts DTO to Entity
     private FoodItem dtoToEntity(FoodItemDto dto) {
         FoodItem foodItem = modelMapper.map(dto, FoodItem.class);

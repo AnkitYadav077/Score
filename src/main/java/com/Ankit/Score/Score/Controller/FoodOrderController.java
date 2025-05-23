@@ -1,6 +1,8 @@
 package com.Ankit.Score.Score.Controller;
 
+import com.Ankit.Score.Score.Payloads.FoodItemDto;
 import com.Ankit.Score.Score.Payloads.FoodOrderDto;
+import com.Ankit.Score.Score.Service.FoodItemService;
 import com.Ankit.Score.Score.Service.FoodOrderService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -14,6 +16,9 @@ public class FoodOrderController {
 
     @Autowired
     private FoodOrderService foodOrderService;
+
+    @Autowired
+    private FoodItemService foodItemService;
 
     // Create a new food order
     @PostMapping
@@ -47,5 +52,10 @@ public class FoodOrderController {
             @RequestBody FoodOrderDto foodOrderDto
     ) {
         return ResponseEntity.ok(foodOrderService.updateOrder(orderId, foodOrderDto));
+    }
+
+    @GetMapping("/search")
+    public List<FoodItemDto> searchFood(@RequestParam String keyword) {
+        return foodItemService.searchFood(keyword);
     }
 }
