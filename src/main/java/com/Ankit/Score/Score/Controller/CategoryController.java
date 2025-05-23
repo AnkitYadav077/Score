@@ -1,0 +1,30 @@
+package com.Ankit.Score.Score.Controller;
+
+import com.Ankit.Score.Score.Payloads.CategoryDto;
+import com.Ankit.Score.Score.Entity.CategoryType;
+import com.Ankit.Score.Score.Service.CategoryService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
+@RestController
+@RequestMapping("/admin/category")
+@RequiredArgsConstructor
+public class CategoryController {
+
+    private final CategoryService categoryService;
+
+    // Add a new category
+    @PostMapping
+    public ResponseEntity<CategoryDto> addCategory(@RequestBody CategoryDto categoryDto) {
+        return ResponseEntity.ok(categoryService.addCategory(categoryDto));
+    }
+
+    // Get categories by type (e.g., SPORT, FOOD, etc.)
+    @GetMapping("/{type}")
+    public ResponseEntity<List<CategoryDto>> getCategories(@PathVariable CategoryType type) {
+        return ResponseEntity.ok(categoryService.getCategoriesByType(type));
+    }
+}
