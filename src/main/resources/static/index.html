@@ -1,0 +1,56 @@
+<button id="payButton">Pay Now</button>
+
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<script>
+    document.getElementById("payButton").onclick = async function() {
+        const amount = 200; // in rupees
+        const currency = "INR";
+        const receipt = "order_rcptid_11";
+
+        // Suppose this payment is for foodOrder with ID 123
+        const foodOrderId = 123;  // dynamically set karo based on your app logic
+        const bookingId = null;   // agar booking payment ho to yahan bookingId set karo
+
+        // 1️⃣ Send payment order creation request using query params, not JSON body
+        const res = await fetch(`http://localhost:8081/api/payment/create?amount=${amount}&currency=${currency}&receipt=${receipt}`, {
+            method: 'POST'
+        });
+
+        const data = await res.json();
+
+        console.log("Order Created:", data);
+
+        const options = {
+            key: "rzp_test_7SEhinYJRzQIpS", // Your Razorpay key
+            amount: data.amount, // amount in paise from backend
+            currency: data.currency,
+            name: "Score App",
+            description: "Test Payment",
+            order_id: data.id, // Razorpay order_id
+            handler: async function (response) {
+                console.log("Payment Response:", response);
+
+                // 2️⃣ Send payment verification to backend along with foodOrderId or bookingId
+                const verifyRes = await fetch(`http://localhost:8081/api/payment/verify`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        orderId: response.razorpay_order_id,
+                        paymentId: response.razorpay_payment_id,
+                        signature: response.razorpay_signature,
+                        foodOrderId: 6,  // Add this
+                        bookingId: bookingId       // null if not applicable
+                    })
+                });
+
+                const verifyText = await verifyRes.text();
+                alert(verifyText);
+            }
+        };
+
+        const rzp = new Razorpay(options);
+        rzp.open();
+    };
+</script>

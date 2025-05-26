@@ -21,6 +21,9 @@ public class FoodOrderServiceImpl implements FoodOrderService {
     @Autowired private UserRepo userRepo;
     @Autowired private FoodItemRepo foodItemRepo;
     @Autowired private ModelMapper modelMapper;
+    @Autowired
+    private PaymentService paymentService;
+
 
     private static final String DEFAULT_STATUS = "PENDING";
     private static final String DEFAULT_PAYMENT_STATUS = "PENDING";
@@ -38,15 +41,22 @@ public class FoodOrderServiceImpl implements FoodOrderService {
             throw new IllegalArgumentException("Quantity must be greater than 0");
         }
 
+        if (!"PAID".equalsIgnoreCase(dto.getPaymentStatus())) {
+            throw new RuntimeException("Payment must be completed before placing the order.");
+        }
+
         FoodOrder order = new FoodOrder();
         order.setUser(user);
         order.setFoodItem(foodItem);
         order.setQuantity(dto.getQuantity());
         order.setOrderAt(LocalTime.now());
+        order.setPaymentStatus("PAID");
+        order.setStatus("CONFIRMED");
 
         FoodOrder savedOrder = foodOrderRepo.save(order);
         return enrichOrderDto(entityToDto(savedOrder));
     }
+
 
     @Override
     public FoodOrderDto getOrderById(Long orderId) {
@@ -136,4 +146,19 @@ public class FoodOrderServiceImpl implements FoodOrderService {
 
         return dto;
     }
+
+    public FoodOrderDto createOrderWithPayment(Long userId, Long foodId, int quantity, String razorpayPaymentId) throws Exception {
+        boolean isPaymentCaptured = paymentService.verifyPayment(razorpayPaymentId);
+        if (!isPaymentCaptured) {
+            throw new RuntimeException("Payment not verified. Please complete payment.");
+        }
+
+        FoodOrderDto dto = new FoodOrderDto();
+        dto.setUserId(userId);
+        dto.setFoodId(foodId);
+        dto.setQuantity(quantity);
+
+        return createOrder(dto);
+    }
+
 }

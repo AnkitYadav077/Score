@@ -16,4 +16,6 @@ public class BookingDto {
     private LocalDateTime bookingEndTime;
     private String userName;
     private String userMobileNo;
+    private String paymentStatus;
+    private String status;
 }

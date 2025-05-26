@@ -29,5 +29,6 @@ public class FoodOrderDto {
     private String specialInstructions;
 
     private String paymentStatus;      // PENDING, PAID, REFUNDED
-    private String paymentMethod;      // CASH, CARD, UPI
+    private String paymentMethod;// CASH, CARD, UPI
+
 }

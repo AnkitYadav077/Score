@@ -15,4 +15,6 @@ public interface FoodOrderService {
     List<FoodOrderDto> getOrdersByUser(Long userId);
 
     FoodOrderDto updateOrder(Long orderId, FoodOrderDto foodOrderDto);
+
+    public FoodOrderDto createOrderWithPayment(Long userId, Long foodId, int quantity, String razorpayPaymentId)throws Exception;
 }

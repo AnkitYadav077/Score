@@ -20,6 +20,9 @@ public class Booking {
     @ManyToOne
     @JoinColumn(name = "user_id")
     private User user;
+    private String paymentStatus;
+
+    private String status;
 
     @ManyToOne
     @JoinColumn(name = "slot_id")

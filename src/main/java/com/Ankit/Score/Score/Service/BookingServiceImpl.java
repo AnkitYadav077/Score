@@ -26,6 +26,10 @@ public class BookingServiceImpl implements BookingService {
     private UserRepo userRepo;
 
     @Autowired
+    private PaymentService paymentService;
+
+
+    @Autowired
     private SportSlotRepo slotRepo;
 
     @Autowired
@@ -39,7 +43,11 @@ public class BookingServiceImpl implements BookingService {
         SportSlot slot = slotRepo.findById(bookingDto.getSlotId())
                 .orElseThrow(() -> new RuntimeException("Slot not found"));
 
-        // Strict validation of the slot times
+        if (!"PAID".equalsIgnoreCase(bookingDto.getPaymentStatus())) {
+            throw new RuntimeException("Payment is required before booking the slot.");
+        }
+
+        // Validate slot time
         if (!isValidSlotTime(slot)) {
             throw new RuntimeException("❌ Invalid Slot: Start time must be at :00 or :30 minutes, end time must be at :00 or :30 minutes, " +
                     "no seconds or nanos allowed, and duration must be at least 1 hour.");
@@ -58,14 +66,14 @@ public class BookingServiceImpl implements BookingService {
         Booking booking = dtoToEntity(bookingDto);
         booking.setUser(user);
         booking.setSportSlot(slot);
-
-        // Set bookingTime as slot date + slot startTime
+        booking.setPaymentStatus("PAID");
         booking.setBookingTime(LocalDateTime.of(slot.getDate(), slot.getStartTime()));
         booking.setBookingDate(slot.getDate());
 
         Booking saved = bookingRepo.save(booking);
         return entityToDto(saved);
     }
+
 
     @Override
     public BookingDto getBookingById(Long bookingId) {
@@ -132,4 +140,18 @@ public class BookingServiceImpl implements BookingService {
 
         return dto;
     }
+
+    public BookingDto createBookingWithPayment(Long userId, Long slotId, String razorpayPaymentId) throws Exception {
+        boolean isPaymentCaptured = paymentService.verifyPayment(razorpayPaymentId);
+        if (!isPaymentCaptured) {
+            throw new RuntimeException("Payment not verified. Please complete payment.");
+        }
+
+        BookingDto dto = new BookingDto();
+        dto.setUserId(userId);
+        dto.setSlotId(slotId);
+
+        return createBooking(dto);
+    }
+
 }

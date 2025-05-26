@@ -20,9 +20,14 @@ public class FoodOrder {
 
     private LocalTime orderAt;
 
+    private String paymentStatus;
+
+    private String status;
+
     @ManyToOne
     @JoinColumn(name = "user_id")
     private User user;
+
 
     @ManyToOne
     @JoinColumn(name = "food_id")

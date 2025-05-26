@@ -7,4 +7,5 @@ public interface BookingService {
     BookingDto createBooking(BookingDto bookingDto);
     BookingDto getBookingById(Long bookingId);
     List<BookingDto> getAllBookings();
+    public BookingDto createBookingWithPayment(Long userId, Long slotId, String razorpayPaymentId)throws Exception;
 }
