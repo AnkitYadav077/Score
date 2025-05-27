@@ -4,6 +4,7 @@ import com.Ankit.Score.Score.Payloads.FoodItemDto;
 import com.Ankit.Score.Score.Payloads.FoodOrderDto;
 import com.Ankit.Score.Score.Service.FoodItemService;
 import com.Ankit.Score.Score.Service.FoodOrderService;
+import com.Ankit.Score.Score.Service.PaymentService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -20,42 +21,21 @@ public class FoodOrderController {
     @Autowired
     private FoodItemService foodItemService;
 
-    // Create a new food order
-    @PostMapping
-    public ResponseEntity<FoodOrderDto> createOrder(@RequestBody FoodOrderDto foodOrderDto) {
-        FoodOrderDto createdOrder = foodOrderService.createOrder(foodOrderDto);
-        return ResponseEntity.status(201).body(createdOrder);
-    }
+    @Autowired
+    private PaymentService paymentService;
 
-    // Get a specific order by ID
-    @GetMapping("/{orderId}")
-    public ResponseEntity<FoodOrderDto> getOrderById(@PathVariable Long orderId) {
-        return ResponseEntity.ok(foodOrderService.getOrderById(orderId));
-    }
-
-    // Get all orders
-    @GetMapping
-    public ResponseEntity<List<FoodOrderDto>> getAllOrders() {
-        return ResponseEntity.ok(foodOrderService.getAllOrders());
-    }
-
-    // Get orders for a specific user
-    @GetMapping("/user/{userId}")
-    public ResponseEntity<List<FoodOrderDto>> getOrdersByUser(@PathVariable Long userId) {
-        return ResponseEntity.ok(foodOrderService.getOrdersByUser(userId));
-    }
-
-    // Update an order
-    @PutMapping("/{orderId}")
-    public ResponseEntity<FoodOrderDto> updateOrder(
-            @PathVariable Long orderId,
-            @RequestBody FoodOrderDto foodOrderDto
-    ) {
-        return ResponseEntity.ok(foodOrderService.updateOrder(orderId, foodOrderDto));
+    // Place order from Cart with correct parameter (cartId)
+    @PostMapping("/placeCartOrder")
+    public ResponseEntity<List<FoodOrderDto>> placeCartOrder(
+            @RequestParam Long cartId,                    // <-- Changed from userId to cartId
+            @RequestParam String razorpayPaymentId
+    ) throws Exception {
+        List<FoodOrderDto> orders = foodOrderService.placeOrderFromCart(cartId, razorpayPaymentId);
+        return ResponseEntity.status(201).body(orders);
     }
 
     @GetMapping("/search")
-    public List<FoodItemDto> searchFood(@RequestParam String keyword) {
-        return foodItemService.searchFood(keyword);
+    public ResponseEntity<List<FoodItemDto>> searchFood(@RequestParam String keyword) {
+        return ResponseEntity.ok(foodItemService.searchFood(keyword));
     }
 }

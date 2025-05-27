@@ -9,25 +9,28 @@ import java.time.LocalDateTime;
 @Entity
 @Getter
 @Setter
-@AllArgsConstructor
 @NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class Booking {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long bookingId;
 
-    @ManyToOne
-    @JoinColumn(name = "user_id")
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
     private User user;
-    private String paymentStatus;
 
-    private String status;
-
-    @ManyToOne
-    @JoinColumn(name = "slot_id")
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "slot_id", nullable = false)
     private SportSlot sportSlot;
 
-    private LocalDateTime bookingTime;  // When the booking is scheduled to happen
-    private LocalDate bookingDate;      // Used for duplicate checks
+    private String paymentStatus;
+    private String status;
+
+    private LocalDateTime bookingTime;  // start time
+    private LocalDate bookingDate;
+
+    private Double price;
 }

@@ -1,11 +1,12 @@
 package com.Ankit.Score.Score.Service;
 
 import com.Ankit.Score.Score.Payloads.BookingDto;
+
 import java.util.List;
 
 public interface BookingService {
     BookingDto createBooking(BookingDto bookingDto);
     BookingDto getBookingById(Long bookingId);
     List<BookingDto> getAllBookings();
-    public BookingDto createBookingWithPayment(Long userId, Long slotId, String razorpayPaymentId)throws Exception;
+    BookingDto createBookingWithPayment(Long userId, Long slotId, String razorpayPaymentId) throws Exception;
 }

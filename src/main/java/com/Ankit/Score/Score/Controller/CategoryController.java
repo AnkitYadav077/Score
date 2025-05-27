@@ -19,12 +19,14 @@ public class CategoryController {
     // Add a new category
     @PostMapping
     public ResponseEntity<CategoryDto> addCategory(@RequestBody CategoryDto categoryDto) {
-        return ResponseEntity.ok(categoryService.addCategory(categoryDto));
+        CategoryDto createdCategory = categoryService.addCategory(categoryDto);
+        return ResponseEntity.ok(createdCategory);
     }
 
-    // Get categories by type (e.g., SPORT, FOOD, etc.)
+    // Get categories by type (e.g., SPORT, FOOD)
     @GetMapping("/{type}")
-    public ResponseEntity<List<CategoryDto>> getCategories(@PathVariable CategoryType type) {
-        return ResponseEntity.ok(categoryService.getCategoriesByType(type));
+    public ResponseEntity<List<CategoryDto>> getCategoriesByType(@PathVariable CategoryType type) {
+        List<CategoryDto> categories = categoryService.getCategoriesByType(type);
+        return ResponseEntity.ok(categories);
     }
 }

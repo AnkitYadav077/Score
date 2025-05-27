@@ -11,11 +11,14 @@ import org.springframework.stereotype.Service;
 @Service
 public class AdminServiceImpl implements AdminService {
 
-    @Autowired
-    private AdminRepo adminRepo;
+    private final AdminRepo adminRepo;
+    private final ModelMapper modelMapper;
 
     @Autowired
-    private ModelMapper modelMapper;
+    public AdminServiceImpl(AdminRepo adminRepo, ModelMapper modelMapper) {
+        this.adminRepo = adminRepo;
+        this.modelMapper = modelMapper;
+    }
 
     @Override
     public AdminDto createAdmin(AdminDto adminDto) {

@@ -7,7 +7,6 @@ import com.Ankit.Score.Score.Payloads.FoodItemDto;
 import com.Ankit.Score.Score.Repo.CategoryRepo;
 import com.Ankit.Score.Score.Repo.FoodItemRepo;
 import org.modelmapper.ModelMapper;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -16,32 +15,35 @@ import java.util.stream.Collectors;
 @Service
 public class FoodItemServiceImpl implements FoodItemService {
 
-    @Autowired
-    private FoodItemRepo foodItemRepo;
+    private final FoodItemRepo foodItemRepo;
+    private final CategoryRepo categoryRepo;
+    private final ModelMapper modelMapper;
 
-    @Autowired
-    private CategoryRepo categoryRepo;
-
-    @Autowired
-    private ModelMapper modelMapper;
+    public FoodItemServiceImpl(FoodItemRepo foodItemRepo, CategoryRepo categoryRepo, ModelMapper modelMapper) {
+        this.foodItemRepo = foodItemRepo;
+        this.categoryRepo = categoryRepo;
+        this.modelMapper = modelMapper;
+    }
 
     @Override
     public FoodItemDto createFoodItem(FoodItemDto foodItemDto) {
-        FoodItem foodItem = dtoToEntity(foodItemDto);
+        FoodItem foodItem = convertToEntity(foodItemDto);
         FoodItem saved = foodItemRepo.save(foodItem);
-        return entityToDto(saved);
+        return convertToDto(saved);
     }
 
     @Override
     public FoodItemDto getFoodItemById(Long foodId) {
         FoodItem foodItem = foodItemRepo.findById(foodId)
                 .orElseThrow(() -> new ResourceNotFoundException("FoodItem", "id", foodId));
-        return entityToDto(foodItem);
+        return convertToDto(foodItem);
     }
 
     @Override
     public List<FoodItemDto> getAllFoodItems() {
-        return foodItemRepo.findAll().stream().map(this::entityToDto).collect(Collectors.toList());
+        return foodItemRepo.findAll().stream()
+                .map(this::convertToDto)
+                .collect(Collectors.toList());
     }
 
     @Override
@@ -60,7 +62,7 @@ public class FoodItemServiceImpl implements FoodItemService {
         }
 
         FoodItem updated = foodItemRepo.save(existing);
-        return entityToDto(updated);
+        return convertToDto(updated);
     }
 
     @Override
@@ -73,36 +75,47 @@ public class FoodItemServiceImpl implements FoodItemService {
     @Override
     public List<FoodItemDto> getFoodItemsByCategoryNameOrId(String categoryIdentifier) {
         List<FoodItem> foodItems;
+        if (categoryIdentifier == null || categoryIdentifier.isBlank()) {
+            throw new IllegalArgumentException("Category identifier must not be null or blank");
+        }
+
         try {
             Long categoryId = Long.parseLong(categoryIdentifier);
             foodItems = foodItemRepo.findByCategory_Id(categoryId);
         } catch (NumberFormatException e) {
-            foodItems = foodItemRepo.findByCategory_Name(categoryIdentifier);
+            foodItems = foodItemRepo.findByCategory_NameIgnoreCase(categoryIdentifier.trim());
         }
-        return foodItems.stream().map(this::entityToDto).collect(Collectors.toList());
+
+        return foodItems.stream().map(this::convertToDto).collect(Collectors.toList());
     }
 
     @Override
     public List<FoodItemDto> searchFood(String keyword) {
-        List<FoodItem> foodItems = foodItemRepo.findByNameContainingIgnoreCase(keyword);
+        if (keyword == null || keyword.isBlank()) {
+            throw new IllegalArgumentException("Search keyword must not be null or blank");
+        }
+        List<FoodItem> foodItems = foodItemRepo.findByNameContainingIgnoreCase(keyword.trim());
         return foodItems.stream()
-                .map(food -> modelMapper.map(food, FoodItemDto.class))
+                .map(this::convertToDto)
                 .collect(Collectors.toList());
     }
 
-    // Converts DTO to Entity
-    private FoodItem dtoToEntity(FoodItemDto dto) {
+    // DTO to Entity conversion with category fetch
+    private FoodItem convertToEntity(FoodItemDto dto) {
         FoodItem foodItem = modelMapper.map(dto, FoodItem.class);
+
         if (dto.getCategory() != null && dto.getCategory().getId() != null) {
             Category category = categoryRepo.findById(dto.getCategory().getId())
                     .orElseThrow(() -> new ResourceNotFoundException("Category", "id", dto.getCategory().getId()));
             foodItem.setCategory(category);
+        } else {
+            throw new IllegalArgumentException("Category information is required for FoodItem");
         }
         return foodItem;
     }
 
-    // Converts Entity to DTO
-    private FoodItemDto entityToDto(FoodItem entity) {
+    // Entity to DTO conversion
+    private FoodItemDto convertToDto(FoodItem entity) {
         return modelMapper.map(entity, FoodItemDto.class);
     }
 }

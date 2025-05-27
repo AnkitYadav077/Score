@@ -14,41 +14,40 @@ import java.util.List;
 @RequestMapping("/user")
 public class UserController {
 
-    @Autowired
-    private UserService userService;
+    private final UserService userService;
 
-    // Create a new user (POST /user)
+    @Autowired
+    public UserController(UserService userService) {
+        this.userService = userService;
+    }
+
     @PostMapping
-    public ResponseEntity<UserDto> saveUser(@RequestBody UserDto userDto) {
+    public ResponseEntity<UserDto> createUser(@RequestBody UserDto userDto) {
         UserDto createdUser = userService.createUser(userDto);
         return ResponseEntity.status(HttpStatus.CREATED).body(createdUser);
     }
 
-    // Update existing user (PUT /user/{userId})
     @PutMapping("/{userId}")
     public ResponseEntity<UserDto> updateUser(@RequestBody UserDto userDto, @PathVariable Long userId) {
         UserDto updatedUser = userService.updateUser(userDto, userId);
         return ResponseEntity.ok(updatedUser);
     }
 
-    // Get user by ID (GET /user/{userId})
     @GetMapping("/{userId}")
     public ResponseEntity<UserDto> getUserById(@PathVariable Long userId) {
         UserDto userDto = userService.getUserById(userId);
         return ResponseEntity.ok(userDto);
     }
 
-    // Get all users (GET /user)
     @GetMapping
     public ResponseEntity<List<UserDto>> getAllUsers() {
         List<UserDto> users = userService.getAllUser();
         return ResponseEntity.ok(users);
     }
 
-    @GetMapping("/{userId}/order-history")
-    public ResponseEntity<List<OrderHistoryDto>> getUserOrderHistory(@PathVariable Long userId) {
-        List<OrderHistoryDto> history = userService.getUserOrderHistory(userId);
-        return ResponseEntity.ok(history);
-    }
-
+//    @GetMapping("/{userId}/order-history")
+//    public ResponseEntity<List<OrderHistoryDto>> getUserOrderHistory(@PathVariable Long userId) {
+//        List<OrderHistoryDto> history = userService.getUserOrderHistory(userId);
+//        return ResponseEntity.ok(history);
+//    }
 }

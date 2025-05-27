@@ -3,6 +3,7 @@ package com.Ankit.Score.Score.Entity;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 
 @Entity
@@ -10,6 +11,7 @@ import java.time.LocalTime;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 public class FoodOrder {
 
     @Id
@@ -20,18 +22,21 @@ public class FoodOrder {
 
     private LocalTime orderAt;
 
-    private String paymentStatus;
+    private String paymentStatus;  // PENDING, PAID, REFUNDED
 
-    private String status;
+    private String status;         // PENDING, CONFIRMED, CANCELLED, etc.
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
     private User user;
+    private String userName;
+    private String userMobileNo;
 
-
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "food_id")
     private FoodItem foodItem;
+
+    private LocalDateTime orderDateTime;
 
     @Version
     private Integer version;

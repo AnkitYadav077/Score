@@ -20,23 +20,27 @@ import java.util.stream.Collectors;
 @Service
 public class UserServiceImpl implements UserService {
 
-    @Autowired
-    private UserRepo userRepo;
+    private final UserRepo userRepo;
+    private final BookingRepo bookingRepo;
+    private final FoodOrderRepo foodOrderRepo;
+    private final ModelMapper modelMapper;
 
     @Autowired
-    private BookingRepo bookingRepo;
-
-    @Autowired
-    private FoodOrderRepo foodOrderRepo;
-
-    @Autowired
-    private ModelMapper modelMapper;
+    public UserServiceImpl(UserRepo userRepo,
+                           BookingRepo bookingRepo,
+                           FoodOrderRepo foodOrderRepo,
+                           ModelMapper modelMapper) {
+        this.userRepo = userRepo;
+        this.bookingRepo = bookingRepo;
+        this.foodOrderRepo = foodOrderRepo;
+        this.modelMapper = modelMapper;
+    }
 
     @Override
     public UserDto createUser(UserDto userDto) {
-        User user = dtoToUser(userDto);
+        User user = modelMapper.map(userDto, User.class);
         User savedUser = userRepo.save(user);
-        return userToDto(savedUser);
+        return modelMapper.map(savedUser, UserDto.class);
     }
 
     @Override
@@ -49,62 +53,54 @@ public class UserServiceImpl implements UserService {
         existingUser.setMobileNo(userDto.getMobileNo());
 
         User updatedUser = userRepo.save(existingUser);
-        return userToDto(updatedUser);
+        return modelMapper.map(updatedUser, UserDto.class);
     }
 
     @Override
     public UserDto getUserById(Long userId) {
         User user = userRepo.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User", "id", userId));
-        return userToDto(user);
+        return modelMapper.map(user, UserDto.class);
     }
 
     @Override
     public List<UserDto> getAllUser() {
         return userRepo.findAll().stream()
-                .map(this::userToDto)
+                .map(user -> modelMapper.map(user, UserDto.class))
                 .collect(Collectors.toList());
     }
 
     @Override
     public List<OrderHistoryDto> getUserOrderHistory(Long userId) {
-        // Slot Bookings
+        // Fetch Slot Bookings
         List<OrderHistoryDto> slotOrders = bookingRepo.findByUser_UserId(userId).stream()
-                .map(b -> new OrderHistoryDto(
+                .map(booking -> new OrderHistoryDto(
                         "SLOT",
-                        b.getBookingId(),
-                        LocalDateTime.of(b.getBookingDate(), b.getSportSlot().getStartTime()),  // ✅ Fixed here
-                        "Slot on " + b.getBookingDate() + " at " + b.getSportSlot().getStartTime()
-                )).collect(Collectors.toList());
+                        booking.getBookingId(),
+                        LocalDateTime.of(booking.getBookingDate(), booking.getSportSlot().getStartTime()),
+                        "Slot on " + booking.getBookingDate() + " at " + booking.getSportSlot().getStartTime()
+                ))
+                .collect(Collectors.toList());
 
-        // Food Orders
+        // Fetch Food Orders
         List<OrderHistoryDto> foodOrders = foodOrderRepo.findByUser_UserId(userId).stream()
-                .map(f -> new OrderHistoryDto(
+                .map(order -> new OrderHistoryDto(
                         "FOOD",
-                        f.getOrderId(),
-                        LocalDateTime.of(LocalDate.now(), f.getOrderAt()),  // ✅ Fixed here
-                        "Ordered " + f.getQuantity() + " x " + f.getFoodItem().getName()
-                                + ", Total: ₹" + (f.getQuantity() * f.getFoodItem().getPrice())
-                )).collect(Collectors.toList());
+                        order.getOrderId(),
+                        LocalDateTime.of(LocalDate.now(), order.getOrderAt()),
+                        "Ordered " + order.getQuantity() + " x " + order.getFoodItem().getName()
+                                + ", Total: ₹" + (order.getQuantity() * order.getFoodItem().getPrice())
+                ))
+                .collect(Collectors.toList());
 
-        // Merge and sort (future date first)
+        // Merge all orders
         List<OrderHistoryDto> allOrders = new ArrayList<>();
         allOrders.addAll(slotOrders);
         allOrders.addAll(foodOrders);
 
+        // Sort descending by order datetime (future first)
         return allOrders.stream()
-                .sorted((a, b) -> b.getOrderDateTime().compareTo(a.getOrderDateTime()))
+                .sorted((o1, o2) -> o2.getOrderDateTime().compareTo(o1.getOrderDateTime()))
                 .collect(Collectors.toList());
-    }
-
-
-    // Helper: DTO -> Entity
-    private User dtoToUser(UserDto userDto) {
-        return modelMapper.map(userDto, User.class);
-    }
-
-    // Helper: Entity -> DTO
-    private UserDto userToDto(User user) {
-        return modelMapper.map(user, UserDto.class);
     }
 }

@@ -6,10 +6,10 @@ import lombok.Setter;
 @Getter
 @Setter
 public class PaymentVerificationRequest {
-    private String orderId;
-    private String paymentId;
-    private String signature;
+    private String razorpayOrderId;
+    private String razorpayPaymentId;
+    private String razorpaySignature;
 
-    private Long foodOrderId; // Optional, if payment is for FoodOrder
-    private Long bookingId;   // Optional, if payment is for Booking
+    private Long userId;       // add this
+    private Double amount;
 }

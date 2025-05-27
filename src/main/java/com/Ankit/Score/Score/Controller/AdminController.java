@@ -10,24 +10,28 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/admin")
 public class AdminController {
 
-    @Autowired
-    private AdminService adminService;
+    private final AdminService adminService;
 
-    // Create new admin
+    @Autowired
+    public AdminController(AdminService adminService) {
+        this.adminService = adminService;
+    }
+
+    // Create new admin (POST /admin)
     @PostMapping
     public ResponseEntity<AdminDto> createAdmin(@RequestBody AdminDto adminDto) {
         AdminDto savedAdmin = adminService.createAdmin(adminDto);
         return ResponseEntity.status(201).body(savedAdmin);
     }
 
-    // Update existing admin
+    // Update existing admin (PUT /admin/{id})
     @PutMapping("/{id}")
     public ResponseEntity<AdminDto> updateAdmin(@RequestBody AdminDto adminDto, @PathVariable Long id) {
         AdminDto updatedAdmin = adminService.updateAdmin(adminDto, id);
         return ResponseEntity.ok(updatedAdmin);
     }
 
-    // Get admin by ID
+    // Get admin by ID (GET /admin/{id})
     @GetMapping("/{id}")
     public ResponseEntity<AdminDto> getAdminById(@PathVariable Long id) {
         AdminDto admin = adminService.getAdminById(id);

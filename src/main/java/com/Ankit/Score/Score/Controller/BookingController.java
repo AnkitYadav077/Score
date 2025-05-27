@@ -13,45 +13,34 @@ import java.util.List;
 @RequestMapping("/api/bookings")
 public class BookingController {
 
-    @Autowired
-    private BookingService bookingService;
+    private final BookingService bookingService;
+    private final PaymentService paymentService;
 
     @Autowired
-    private PaymentService paymentService;
-
-
-    // Create a new booking
-    @PostMapping
-    public ResponseEntity<BookingDto> createBooking(@RequestBody BookingDto dto) {
-        return ResponseEntity.ok(bookingService.createBooking(dto));
+    public BookingController(BookingService bookingService, PaymentService paymentService) {
+        this.bookingService = bookingService;
+        this.paymentService = paymentService;
     }
 
-    // Get booking by ID
+    @PostMapping
+    public ResponseEntity<BookingDto> createBooking(@RequestBody BookingDto dto) {
+        BookingDto booking = bookingService.createBooking(dto);
+        return ResponseEntity.ok(booking);
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<BookingDto> getBooking(@PathVariable Long id) {
         return ResponseEntity.ok(bookingService.getBookingById(id));
     }
 
-    // Get all bookings
     @GetMapping
-    public ResponseEntity<List<BookingDto>> getAll() {
+    public ResponseEntity<List<BookingDto>> getAllBookings() {
         return ResponseEntity.ok(bookingService.getAllBookings());
     }
 
-    @PostMapping("/createPaymentOrder")
-    public ResponseEntity<?> createBookingPaymentOrder(@RequestParam int amount) throws Exception {
-        String order = paymentService.createPaymentOrder(amount, "INR", "booking_receipt_" + System.currentTimeMillis());
-        return ResponseEntity.ok(order);
-    }
-
-//    @PostMapping("/confirmBooking")
-//    public ResponseEntity<BookingDto> confirmBooking(
-//            @RequestParam Long userId,
-//            @RequestParam Long slotId,
-//            @RequestParam String paymentId) throws Exception {
-//        BookingDto bookingDto = bookingService.createBookingWithPayment(userId, slotId, paymentId);
-//        return ResponseEntity.ok(bookingDto);
+//    @PostMapping("/createPaymentOrder")
+//    public ResponseEntity<String> createBookingPaymentOrder(@RequestParam int amount) throws Exception {
+//        String orderId = paymentService.createPaymentOrder(amount, "INR", "booking_receipt_" + System.currentTimeMillis()).toString();
+//        return ResponseEntity.ok(orderId);
 //    }
-
-
 }

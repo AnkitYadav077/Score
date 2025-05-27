@@ -8,7 +8,7 @@ import java.util.List;
 
 @Repository
 public interface FoodItemRepo extends JpaRepository<FoodItem, Long> {
-    List<FoodItem> findByCategory_Name(String categoryName);
-    List<FoodItem> findByCategory_Id(Long id);
+    List<FoodItem> findByCategory_NameIgnoreCase(String categoryName);
+    List<FoodItem> findByCategory_Id(Long categoryId);
     List<FoodItem> findByNameContainingIgnoreCase(String keyword);
 }

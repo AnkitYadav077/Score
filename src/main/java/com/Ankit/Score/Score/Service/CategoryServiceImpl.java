@@ -7,12 +7,14 @@ import com.Ankit.Score.Score.Repo.CategoryRepo;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class CategoryServiceImpl implements CategoryService {
 
     private final CategoryRepo categoryRepository;
@@ -20,25 +22,21 @@ public class CategoryServiceImpl implements CategoryService {
 
     @Override
     public CategoryDto addCategory(CategoryDto categoryDto) {
-        Category category = toEntity(categoryDto);
+        // Check for duplicate name for same type (Optional)
+        if (categoryRepository.existsByNameAndType(categoryDto.getName(), categoryDto.getType())) {
+            throw new RuntimeException("Category with this name and type already exists");
+        }
+
+        Category category = modelMapper.map(categoryDto, Category.class);
         Category savedCategory = categoryRepository.save(category);
-        return toDto(savedCategory);
+        return modelMapper.map(savedCategory, CategoryDto.class);
     }
 
     @Override
     public List<CategoryDto> getCategoriesByType(CategoryType type) {
-        return categoryRepository.findByType(type)
-                .stream()
-                .map(this::toDto)
+        List<Category> categories = categoryRepository.findByType(type);
+        return categories.stream()
+                .map(category -> modelMapper.map(category, CategoryDto.class))
                 .collect(Collectors.toList());
-    }
-
-    // Mapping methods
-    private CategoryDto toDto(Category category) {
-        return modelMapper.map(category, CategoryDto.class);
-    }
-
-    private Category toEntity(CategoryDto categoryDto) {
-        return modelMapper.map(categoryDto, Category.class);
     }
 }

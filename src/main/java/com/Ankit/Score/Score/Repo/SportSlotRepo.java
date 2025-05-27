@@ -7,7 +7,7 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 
 @Repository
-public interface SportSlotRepo extends JpaRepository<SportSlot,Long> {
+public interface SportSlotRepo extends JpaRepository<SportSlot, Long> {
     List<SportSlot> findByCategory_Id(Long categoryId);
     List<SportSlot> findByCategory_Name(String categoryName);
 }

@@ -4,10 +4,10 @@ import lombok.*;
 
 @Setter
 @Getter
-@AllArgsConstructor
 @NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class FoodItemDto {
-
     private Long foodId;
     private String name;
     private int price;
