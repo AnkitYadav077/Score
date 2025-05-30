@@ -1,4 +1,4 @@
-<button id="payButton" data-user-id="4" data-cart-group-id="2">Pay Now</button>
+<button id="payButton" data-user-id="5" data-cart-group-id="3">Pay Now</button>
 
 <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 <script>
@@ -10,7 +10,7 @@
 
         try {
             // Query params me cartId and currency bhej rahe hain (POST request with no body)
-            const res = await fetch(`http://localhost:8080/api/payment/create?cartId=${cartGroupId}&currency=${currency}`, {
+            const res = await fetch(`http://localhost:8082/api/payment/create?cartId=${cartGroupId}&currency=${currency}`, {
                 method: 'POST'
                 // No body needed as backend reads from query params
             });
@@ -29,7 +29,7 @@
                     console.log("Payment Response:", response);
 
                     // Payment verification ke liye backend me cartId ko query param me bhej rahe hain
-                    const verifyRes = await fetch(`http://localhost:8080/api/payment/verify?cartId=${cartGroupId}`, {
+                    const verifyRes = await fetch(`http://localhost:8082/api/payment/verify?cartId=${cartGroupId}`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({

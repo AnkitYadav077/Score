@@ -38,4 +38,16 @@ public class FoodOrderController {
     public ResponseEntity<List<FoodItemDto>> searchFood(@RequestParam String keyword) {
         return ResponseEntity.ok(foodItemService.searchFood(keyword));
     }
+
+    // Get all orders
+    @GetMapping("/admin")
+    public List<FoodOrderDto> getAllOrders() {
+        return foodOrderService.getAllOrders();
+    }
+
+    @GetMapping("/user/{userId}")
+    public ResponseEntity<List<FoodOrderDto>> getOrdersForUser(@PathVariable Long userId) {
+        List<FoodOrderDto> orders = foodOrderService.getOrdersForUser(userId);
+        return ResponseEntity.ok(orders);
+    }
 }

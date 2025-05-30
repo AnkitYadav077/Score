@@ -70,37 +70,37 @@ public class UserServiceImpl implements UserService {
                 .collect(Collectors.toList());
     }
 
-    @Override
-    public List<OrderHistoryDto> getUserOrderHistory(Long userId) {
-        // Fetch Slot Bookings
-        List<OrderHistoryDto> slotOrders = bookingRepo.findByUser_UserId(userId).stream()
-                .map(booking -> new OrderHistoryDto(
-                        "SLOT",
-                        booking.getBookingId(),
-                        LocalDateTime.of(booking.getBookingDate(), booking.getSportSlot().getStartTime()),
-                        "Slot on " + booking.getBookingDate() + " at " + booking.getSportSlot().getStartTime()
-                ))
-                .collect(Collectors.toList());
-
-        // Fetch Food Orders
-        List<OrderHistoryDto> foodOrders = foodOrderRepo.findByUser_UserId(userId).stream()
-                .map(order -> new OrderHistoryDto(
-                        "FOOD",
-                        order.getOrderId(),
-                        LocalDateTime.of(LocalDate.now(), order.getOrderAt()),
-                        "Ordered " + order.getQuantity() + " x " + order.getFoodItem().getName()
-                                + ", Total: ₹" + (order.getQuantity() * order.getFoodItem().getPrice())
-                ))
-                .collect(Collectors.toList());
-
-        // Merge all orders
-        List<OrderHistoryDto> allOrders = new ArrayList<>();
-        allOrders.addAll(slotOrders);
-        allOrders.addAll(foodOrders);
-
-        // Sort descending by order datetime (future first)
-        return allOrders.stream()
-                .sorted((o1, o2) -> o2.getOrderDateTime().compareTo(o1.getOrderDateTime()))
-                .collect(Collectors.toList());
-    }
+//    @Override
+//    public List<OrderHistoryDto> getUserOrderHistory(Long userId) {
+//        // Fetch Slot Bookings
+//        List<OrderHistoryDto> slotOrders = bookingRepo.findByUser_UserId(userId).stream()
+//                .map(booking -> new OrderHistoryDto(
+//                        "SLOT",
+//                        booking.getBookingId(),
+//                        LocalDateTime.of(booking.getBookingDate(), booking.getSportSlot().getStartTime()),
+//                        "Slot on " + booking.getBookingDate() + " at " + booking.getSportSlot().getStartTime()
+//                ))
+//                .collect(Collectors.toList());
+//
+//        // Fetch Food Orders
+//        List<OrderHistoryDto> foodOrders = foodOrderRepo.findByUser_UserId(userId).stream()
+//                .map(order -> new OrderHistoryDto(
+//                        "FOOD",
+//                        order.getOrderId(),
+//                        LocalDateTime.of(LocalDateTime.now(), order.getOrderAt()),
+//                        "Ordered " + order.getQuantity() + " x " + order.getFoodItem().getName()
+//                                + ", Total: ₹" + (order.getQuantity() * order.getFoodItem().getPrice())
+//                ))
+//                .collect(Collectors.toList());
+//
+//        // Merge all orders
+//        List<OrderHistoryDto> allOrders = new ArrayList<>();
+//        allOrders.addAll(slotOrders);
+//        allOrders.addAll(foodOrders);
+//
+//        // Sort descending by order datetime (future first)
+//        return allOrders.stream()
+//                .sorted((o1, o2) -> o2.getOrderDateTime().compareTo(o1.getOrderDateTime()))
+//                .collect(Collectors.toList());
+//    }
 }

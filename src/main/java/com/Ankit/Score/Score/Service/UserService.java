@@ -10,5 +10,5 @@ public interface UserService {
     UserDto updateUser(UserDto userDto, Long userId);
     UserDto getUserById(Long userId);
     List<UserDto> getAllUser();
-     List<OrderHistoryDto> getUserOrderHistory(Long userId);
+   //  List<OrderHistoryDto> getUserOrderHistory(Long userId);
 }

@@ -2,6 +2,7 @@ package com.Ankit.Score.Score.Payloads;
 
 import lombok.*;
 
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 
 @Getter
@@ -25,4 +26,6 @@ public class FoodOrderDto {
 
     private String paymentStatus;
     private String status;
+
+    private LocalDateTime orderDateTime;
 }

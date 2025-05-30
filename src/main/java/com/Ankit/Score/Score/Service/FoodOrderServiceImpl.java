@@ -2,10 +2,10 @@ package com.Ankit.Score.Score.Service;
 
 import com.Ankit.Score.Score.Entity.Cart;
 import com.Ankit.Score.Score.Entity.FoodOrder;
+import com.Ankit.Score.Score.Payloads.FoodOrderDto;
 import com.Ankit.Score.Score.Repo.CartRepo;
 import com.Ankit.Score.Score.Repo.FoodOrderRepo;
 import com.Ankit.Score.Score.Repo.PaymentRepo;
-import com.Ankit.Score.Score.Payloads.FoodOrderDto;
 import com.Ankit.Score.Score.Exceptions.ResourceNotFoundException;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,8 +45,11 @@ public class FoodOrderServiceImpl implements FoodOrderService {
         }
 
         var orders = cart.getCartItems().stream().map(item -> {
+            var user = cart.getUser();
             return FoodOrder.builder()
-                    .user(cart.getUser())
+                    .user(user)
+                    .userName(user != null ? user.getName() : null)
+                    .userMobileNo(user != null ? user.getMobileNo() : null)
                     .foodItem(item.getFoodItem())
                     .quantity(item.getQuantity())
                     .paymentStatus("PAID")
@@ -61,31 +64,36 @@ public class FoodOrderServiceImpl implements FoodOrderService {
         cart.setTotalAmount(0.0);
         cartRepo.save(cart);
 
-        return orders.stream().map(order -> {
-            FoodOrderDto dto = new FoodOrderDto();
-
-            dto.setOrderId(order.getOrderId());
-            dto.setQuantity(order.getQuantity());
-            dto.setOrderAt(order.getOrderAt());
-            dto.setPaymentStatus(order.getPaymentStatus());
-            dto.setStatus(order.getStatus());
-
-            // Set User Info
-            if (order.getUser() != null) {
-                dto.setUserId(order.getUser().getUserId());
-                dto.setUserName(order.getUser().getName());
-                dto.setUserMobileNo(order.getUser().getMobileNo());
-            }
-
-            // Set Food Info
-            if (order.getFoodItem() != null) {
-                dto.setFoodId(order.getFoodItem().getFoodId());
-                dto.setFoodName(order.getFoodItem().getName());
-            }
-
-            return dto;
-        }).collect(Collectors.toList());
-
+        return orders.stream().map(this::mapToDto).collect(Collectors.toList());
     }
 
+    @Override
+    public List<FoodOrderDto> getAllOrders() {
+        List<FoodOrder> orders = foodOrderRepo.findAll();
+        return orders.stream().map(this::mapToDto).collect(Collectors.toList());
+    }
+
+    @Override
+    public List<FoodOrderDto> getOrdersForUser(Long userId) {
+        List<FoodOrder> orders = foodOrderRepo.findByUser_UserId(userId);
+        if (orders.isEmpty()) {
+            throw new ResourceNotFoundException("No orders found for user", "id", userId);
+        }
+        return orders.stream().map(this::mapToDto).collect(Collectors.toList());
+    }
+
+    private FoodOrderDto mapToDto(FoodOrder order) {
+        return FoodOrderDto.builder()
+                .orderId(order.getOrderId())
+                .quantity(order.getQuantity())
+                .paymentStatus(order.getPaymentStatus())
+                .status(order.getStatus())
+                .orderDateTime(order.getOrderDateTime())
+                .userId(order.getUser() != null ? order.getUser().getUserId() : null)
+                .userName(order.getUserName())
+                .userMobileNo(order.getUserMobileNo())
+                .foodId(order.getFoodItem() != null ? order.getFoodItem().getFoodId() : null)
+                .foodName(order.getFoodItem() != null ? order.getFoodItem().getName() : null)
+                .build();
+    }
 }

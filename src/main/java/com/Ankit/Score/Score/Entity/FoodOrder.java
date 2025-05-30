@@ -20,7 +20,6 @@ public class FoodOrder {
 
     private int quantity;
 
-    private LocalTime orderAt;
 
     private String paymentStatus;  // PENDING, PAID, REFUNDED
 
@@ -38,6 +37,4 @@ public class FoodOrder {
 
     private LocalDateTime orderDateTime;
 
-    @Version
-    private Integer version;
 }
