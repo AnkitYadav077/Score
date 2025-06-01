@@ -1,8 +1,8 @@
 package com.Ankit.Score.Score.Controller;
 
 import com.Ankit.Score.Score.Payloads.BookingDto;
+import com.Ankit.Score.Score.Payloads.BookingPaymentRequest;
 import com.Ankit.Score.Score.Service.BookingService;
-import com.Ankit.Score.Score.Service.PaymentService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -14,18 +14,10 @@ import java.util.List;
 public class BookingController {
 
     private final BookingService bookingService;
-    private final PaymentService paymentService;
 
     @Autowired
-    public BookingController(BookingService bookingService, PaymentService paymentService) {
+    public BookingController(BookingService bookingService) {
         this.bookingService = bookingService;
-        this.paymentService = paymentService;
-    }
-
-    @PostMapping
-    public ResponseEntity<BookingDto> createBooking(@RequestBody BookingDto dto) {
-        BookingDto booking = bookingService.createBooking(dto);
-        return ResponseEntity.ok(booking);
     }
 
     @GetMapping("/{id}")
@@ -38,9 +30,10 @@ public class BookingController {
         return ResponseEntity.ok(bookingService.getAllBookings());
     }
 
-//    @PostMapping("/createPaymentOrder")
-//    public ResponseEntity<String> createBookingPaymentOrder(@RequestParam int amount) throws Exception {
-//        String orderId = paymentService.createPaymentOrder(amount, "INR", "booking_receipt_" + System.currentTimeMillis()).toString();
-//        return ResponseEntity.ok(orderId);
-//    }
+    @PostMapping("/with-payment")
+    public ResponseEntity<BookingDto> createBookingWithPayment(@RequestBody BookingPaymentRequest request) throws Exception {
+        BookingDto booking = bookingService.createBookingWithPayment(
+                request.getUserId(), request.getSlotId(), request.getOrderId(), request.getPaymentId(), request.getSignature());
+        return ResponseEntity.ok(booking);
+    }
 }

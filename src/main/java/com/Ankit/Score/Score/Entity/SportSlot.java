@@ -6,14 +6,14 @@ import lombok.*;
 import java.time.LocalDate;
 import java.time.LocalTime;
 
+// package: com.Ankit.Score.Score.Entity
+
 @Entity
-@Getter
-@Setter
+@Data
 @NoArgsConstructor
 @AllArgsConstructor
-@ToString
+@Builder
 public class SportSlot {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long slotId;
@@ -26,4 +26,9 @@ public class SportSlot {
     @ManyToOne
     @JoinColumn(name = "category_id")
     private Category category;
+
+    private Integer totalPrice;
+
+    // ... other fields
 }
+

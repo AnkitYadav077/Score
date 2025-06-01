@@ -2,8 +2,11 @@ package com.Ankit.Score.Score.Service;
 
 import com.Ankit.Score.Score.Config.Utils;
 import com.Ankit.Score.Score.Entity.Payment;
+import com.Ankit.Score.Score.Entity.SportSlot;
+import com.Ankit.Score.Score.Exceptions.ResourceNotFoundException;
 import com.Ankit.Score.Score.Payloads.PaymentVerificationRequest;
 import com.Ankit.Score.Score.Repo.PaymentRepo;
+import com.Ankit.Score.Score.Repo.SportSlotRepo;
 import com.razorpay.Order;
 import com.razorpay.RazorpayClient;
 import org.json.JSONObject;
@@ -18,6 +21,8 @@ public class PaymentService {
 
     private final RazorpayClient razorpayClient;
     private final PaymentRepo paymentRepository;
+    @Autowired
+    private SportSlotRepo slotRepo;
 
     @Autowired
     public PaymentService(RazorpayClient razorpayClient, PaymentRepo paymentRepository) {
@@ -72,4 +77,67 @@ public class PaymentService {
         response.put("status", order.get("status"));
         return response;
     }
+
+    public Map<String, Object> createOrderForSlot(Long slotId, String currency) throws Exception {
+        SportSlot slot = slotRepo.findById(slotId)
+                .orElseThrow(() -> new ResourceNotFoundException("Slot", "id", slotId));
+
+        int hourRate = (slot.getStartTime().getHour() < 19) ? slot.getCategory().getBasePrice() : slot.getCategory().getEveningPrice();
+
+        // Calculate duration in hours (e.g., 9:00 - 12:00 = 3 hours)
+        long durationHours = java.time.Duration.between(slot.getStartTime(), slot.getEndTime()).toHours();
+        if (durationHours <= 0) durationHours = 1; // Fallback in case of invalid data
+
+        int totalAmount = hourRate * (int) durationHours;
+        int amountInPaise = totalAmount * 100;
+
+        // Create Razorpay order
+        JSONObject orderRequest = new JSONObject();
+        orderRequest.put("amount", amountInPaise);
+        orderRequest.put("currency", currency);
+        orderRequest.put("payment_capture", 1);
+
+        Order order = razorpayClient.orders.create(orderRequest);
+
+        // Response Map
+        Map<String, Object> response = new HashMap<>();
+        response.put("orderId", order.get("id"));
+        response.put("amount", amountInPaise);
+        response.put("currency", currency);
+        response.put("totalPrice", totalAmount); // Optional: Send total price in INR too
+
+        return response;
+    }
+    public Payment verifyAndSavePaymentForSlot(Long userId, Long slotId, String orderId, String paymentId, String signature) throws Exception {
+        // Signature verification
+        if (!verifySignature(orderId, paymentId, signature)) {
+            throw new IllegalStateException("Payment signature verification failed");
+        }
+
+        // Payment captured status
+        if (!verifyPayment(paymentId)) {
+            throw new IllegalStateException("Payment not captured yet");
+        }
+
+        // Fetch slot and calculate price
+        SportSlot slot = slotRepo.findById(slotId)
+                .orElseThrow(() -> new ResourceNotFoundException("Slot", "id", slotId));
+        int hour = slot.getStartTime().getHour();
+        int price = (hour < 19) ? slot.getCategory().getBasePrice() : slot.getCategory().getEveningPrice();
+
+        // Save payment
+        Payment payment = Payment.builder()
+                .userId(userId)
+                .slotId(slotId)
+                .amount((double) price)
+                .paymentMethod("RAZORPAY")
+                .paymentStatus("SUCCESS")
+                .transactionId(paymentId)
+                .paymentDateTime(LocalDateTime.now())
+                .build();
+
+        return paymentRepository.save(payment);
+    }
 }
+
+

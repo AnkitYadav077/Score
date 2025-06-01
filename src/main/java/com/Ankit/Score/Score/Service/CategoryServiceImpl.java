@@ -22,7 +22,6 @@ public class CategoryServiceImpl implements CategoryService {
 
     @Override
     public CategoryDto addCategory(CategoryDto categoryDto) {
-        // Check for duplicate name for same type (Optional)
         if (categoryRepository.existsByNameAndType(categoryDto.getName(), categoryDto.getType())) {
             throw new RuntimeException("Category with this name and type already exists");
         }
@@ -33,10 +32,19 @@ public class CategoryServiceImpl implements CategoryService {
     }
 
     @Override
-    public List<CategoryDto> getCategoriesByType(CategoryType type) {
-        List<Category> categories = categoryRepository.findByType(type);
-        return categories.stream()
-                .map(category -> modelMapper.map(category, CategoryDto.class))
-                .collect(Collectors.toList());
+    public CategoryDto updateCategoryPrice(Long id, Integer basePrice, Integer eveningPrice) {
+        Category category = categoryRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Category not found"));
+
+        if (category.getType() != CategoryType.SPORT) {
+            throw new RuntimeException("Prices can only be set for SPORT categories");
+        }
+
+        category.setBasePrice(basePrice);
+        category.setEveningPrice(eveningPrice);
+        Category saved = categoryRepository.save(category);
+
+        return modelMapper.map(saved, CategoryDto.class);
     }
+
 }

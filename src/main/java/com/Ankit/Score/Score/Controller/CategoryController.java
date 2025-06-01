@@ -1,5 +1,6 @@
 package com.Ankit.Score.Score.Controller;
 
+import com.Ankit.Score.Score.Entity.Category;
 import com.Ankit.Score.Score.Payloads.CategoryDto;
 import com.Ankit.Score.Score.Entity.CategoryType;
 import com.Ankit.Score.Score.Service.CategoryService;
@@ -23,10 +24,22 @@ public class CategoryController {
         return ResponseEntity.ok(createdCategory);
     }
 
-    // Get categories by type (e.g., SPORT, FOOD)
-    @GetMapping("/{type}")
-    public ResponseEntity<List<CategoryDto>> getCategoriesByType(@PathVariable CategoryType type) {
-        List<CategoryDto> categories = categoryService.getCategoriesByType(type);
-        return ResponseEntity.ok(categories);
+//    // Get categories by type (e.g., SPORT, FOOD)
+//    @GetMapping("/{type}")
+//    public ResponseEntity<List<CategoryDto>> getCategoriesByType(@PathVariable CategoryType type) {
+//        List<CategoryDto> categories = categoryService.getCategoriesByType(type);
+//        return ResponseEntity.ok(categories);
+//    }
+
+
+    @PutMapping("/{id}/update-price")
+    public ResponseEntity<CategoryDto> updateCategoryPrice(
+            @PathVariable Long id,
+            @RequestParam Integer basePrice,
+            @RequestParam Integer eveningPrice) {
+        CategoryDto updated = categoryService.updateCategoryPrice(id, basePrice, eveningPrice);
+        return ResponseEntity.ok(updated);
     }
+
+
 }

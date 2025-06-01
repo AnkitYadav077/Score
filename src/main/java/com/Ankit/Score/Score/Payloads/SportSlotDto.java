@@ -17,4 +17,5 @@ public class SportSlotDto {
     private LocalTime endTime;
     private boolean booked;
     private CategoryDto category;
+    private Integer totalPrice;
 }

@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
+import java.time.LocalTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -29,14 +30,28 @@ public class SportSlotServiceImpl implements SportSlotService {
     @Override
     public SportSlotDto createSlot(SportSlotDto dto) {
         validateSlotTime(dto);
+        checkSlotConflict(dto);
+
         SportSlot slot = dtoToEntity(dto);
-        return entityToDto(sportSlotRepo.save(slot));
+
+        // Calculate and set totalPrice before saving
+        slot.setTotalPrice(calculateTotalPrice(slot));
+
+        SportSlot saved = sportSlotRepo.save(slot);
+
+        SportSlotDto responseDto = entityToDto(saved);
+        responseDto.setTotalPrice(saved.getTotalPrice()); // Optional, but clear
+        return responseDto;
     }
 
     @Override
     public List<SportSlotDto> getAllSlots() {
         return sportSlotRepo.findAll().stream()
-                .map(this::entityToDto)
+                .map(slot -> {
+                    SportSlotDto dto = entityToDto(slot);
+                    dto.setTotalPrice(slot.getTotalPrice());
+                    return dto;
+                })
                 .collect(Collectors.toList());
     }
 
@@ -44,12 +59,16 @@ public class SportSlotServiceImpl implements SportSlotService {
     public SportSlotDto getSlotById(Long slotId) {
         SportSlot slot = sportSlotRepo.findById(slotId)
                 .orElseThrow(() -> new ResourceNotFoundException("SportSlot", "id", slotId));
-        return entityToDto(slot);
+        SportSlotDto dto = entityToDto(slot);
+        dto.setTotalPrice(slot.getTotalPrice());
+        return dto;
     }
 
     @Override
     public SportSlotDto updateSlot(Long slotId, SportSlotDto dto) {
         validateSlotTime(dto);
+        checkSlotConflictForUpdate(slotId, dto);
+
         SportSlot slot = sportSlotRepo.findById(slotId)
                 .orElseThrow(() -> new ResourceNotFoundException("SportSlot", "id", slotId));
 
@@ -58,39 +77,45 @@ public class SportSlotServiceImpl implements SportSlotService {
         slot.setEndTime(dto.getEndTime());
         slot.setBooked(dto.isBooked());
 
-        // Update category if provided in DTO
         if (dto.getCategory() != null && dto.getCategory().getId() != null) {
             Category category = categoryRepo.findById(dto.getCategory().getId())
                     .orElseThrow(() -> new ResourceNotFoundException("Category", "id", dto.getCategory().getId()));
             slot.setCategory(category);
         }
 
-        return entityToDto(sportSlotRepo.save(slot));
+        // Set totalPrice before saving
+        slot.setTotalPrice(calculateTotalPrice(slot));
+
+        SportSlot updated = sportSlotRepo.save(slot);
+        SportSlotDto responseDto = entityToDto(updated);
+        responseDto.setTotalPrice(updated.getTotalPrice());
+        return responseDto;
     }
 
     @Override
     public List<SportSlotDto> getSlotsByCategory(String identifier) {
         Category category = fetchCategoryByIdentifier(identifier);
 
-        List<SportSlot> slots = sportSlotRepo.findByCategory_Id(category.getId());
-        return slots.stream()
-                .map(this::entityToDto)
+        return sportSlotRepo.findByCategory_Id(category.getId()).stream()
+                .map(slot -> {
+                    SportSlotDto dto = entityToDto(slot);
+                    dto.setTotalPrice(slot.getTotalPrice());
+                    return dto;
+                })
                 .collect(Collectors.toList());
     }
 
     // --------- Utility Methods -----------
 
     private Category fetchCategoryByIdentifier(String identifier) {
-        Category category;
         try {
             Long id = Long.parseLong(identifier);
-            category = categoryRepo.findById(id)
+            return categoryRepo.findById(id)
                     .orElseThrow(() -> new ResourceNotFoundException("Category", "id", id));
         } catch (NumberFormatException e) {
-            category = categoryRepo.findByName(identifier)
+            return categoryRepo.findByName(identifier)
                     .orElseThrow(() -> new ResourceNotFoundException("Category", "name", identifier));
         }
-        return category;
     }
 
     private void validateSlotTime(SportSlotDto dto) {
@@ -113,6 +138,43 @@ public class SportSlotServiceImpl implements SportSlotService {
         if (!validStart || !validEndPrecision || duration < 60) {
             throw new IllegalArgumentException("Invalid Slot Time: Start time must be at :00 or :30, end time precision must be zero seconds, and duration must be at least 1 hour.");
         }
+    }
+
+    private void checkSlotConflict(SportSlotDto dto) {
+        List<SportSlot> conflicts = sportSlotRepo.findByCategory_Id(dto.getCategory().getId()).stream()
+                .filter(slot -> slot.getDate().equals(dto.getDate()) &&
+                        (slot.getStartTime().equals(dto.getStartTime()) || slot.getEndTime().equals(dto.getEndTime()) ||
+                                (dto.getStartTime().isBefore(slot.getEndTime()) && dto.getEndTime().isAfter(slot.getStartTime()))))
+                .collect(Collectors.toList());
+        if (!conflicts.isEmpty()) {
+            throw new IllegalArgumentException("Slot timing overlaps with existing slot for the same category.");
+        }
+    }
+
+    private void checkSlotConflictForUpdate(Long slotId, SportSlotDto dto) {
+        List<SportSlot> conflicts = sportSlotRepo.findByCategory_Id(dto.getCategory().getId()).stream()
+                .filter(slot -> !slot.getSlotId().equals(slotId) &&
+                        slot.getDate().equals(dto.getDate()) &&
+                        (slot.getStartTime().equals(dto.getStartTime()) || slot.getEndTime().equals(dto.getEndTime()) ||
+                                (dto.getStartTime().isBefore(slot.getEndTime()) && dto.getEndTime().isAfter(slot.getStartTime()))))
+                .collect(Collectors.toList());
+        if (!conflicts.isEmpty()) {
+            throw new IllegalArgumentException("Slot timing overlaps with existing slot for the same category.");
+        }
+    }
+
+    private Integer calculateTotalPrice(SportSlot slot) {
+        long hours = Duration.between(slot.getStartTime(), slot.getEndTime()).toHours();
+        Category category = slot.getCategory();
+        int pricePerHour;
+
+        if (slot.getStartTime().isAfter(LocalTime.of(17, 0))) {
+            pricePerHour = category.getEveningPrice();
+        } else {
+            pricePerHour = category.getBasePrice();
+        }
+
+        return (int) (pricePerHour * hours);
     }
 
     private SportSlot dtoToEntity(SportSlotDto dto) {

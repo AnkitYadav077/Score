@@ -11,7 +11,6 @@ import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -26,7 +25,8 @@ public class BookingServiceImpl implements BookingService {
     private final ModelMapper modelMapper;
 
     @Autowired
-    public BookingServiceImpl(BookingRepo bookingRepo, UserRepo userRepo, SportSlotRepo slotRepo, PaymentService paymentService, ModelMapper modelMapper) {
+    public BookingServiceImpl(BookingRepo bookingRepo, UserRepo userRepo, SportSlotRepo slotRepo,
+                              PaymentService paymentService, ModelMapper modelMapper) {
         this.bookingRepo = bookingRepo;
         this.userRepo = userRepo;
         this.slotRepo = slotRepo;
@@ -35,28 +35,27 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
-    public BookingDto createBooking(BookingDto dto) {
-        User user = userRepo.findById(dto.getUserId())
-                .orElseThrow(() -> new RuntimeException("User not found"));
+    public BookingDto createBookingWithPayment(Long userId, Long slotId, String orderId, String paymentId, String signature) throws Exception {
+        // Verify and Save Payment
+        paymentService.verifyAndSavePaymentForSlot(userId, slotId, orderId, paymentId, signature);
 
-        SportSlot slot = slotRepo.findById(dto.getSlotId())
-                .orElseThrow(() -> new RuntimeException("Slot not found"));
+        // Fetch User & Slot
+        User user = userRepo.findById(userId).orElseThrow(() -> new RuntimeException("User not found"));
+        SportSlot slot = slotRepo.findById(slotId).orElseThrow(() -> new RuntimeException("Slot not found"));
 
-        if (!"PAID".equalsIgnoreCase(dto.getPaymentStatus())) {
-            throw new RuntimeException("Payment required before booking.");
+        if (slot.isBooked()) {
+            throw new RuntimeException("Slot already booked");
         }
 
-        validateSlotAvailability(slot);
-        validateSlotTime(slot);
+        // Calculate price
+        int hour = slot.getStartTime().getHour();
+        int totalPrice = (hour < 19) ? slot.getCategory().getBasePrice() : slot.getCategory().getEveningPrice();
 
-        synchronized (this) {
-            if (slot.isBooked()) {
-                throw new RuntimeException("Slot already booked.");
-            }
-            slot.setBooked(true);
-            slotRepo.save(slot);
-        }
+        // Mark slot as booked
+        slot.setBooked(true);
+        slotRepo.save(slot);
 
+        // Create Booking
         Booking booking = Booking.builder()
                 .user(user)
                 .sportSlot(slot)
@@ -64,10 +63,22 @@ public class BookingServiceImpl implements BookingService {
                 .status("CONFIRMED")
                 .bookingTime(LocalDateTime.of(slot.getDate(), slot.getStartTime()))
                 .bookingDate(slot.getDate())
+                .price((double) totalPrice)
                 .build();
 
-        Booking saved = bookingRepo.save(booking);
-        return mapToDto(saved);
+        Booking savedBooking = bookingRepo.save(booking);
+
+        // Prepare DTO
+        BookingDto dto = modelMapper.map(savedBooking, BookingDto.class);
+        dto.setUserId(user.getUserId());
+        dto.setUserName(user.getName());
+        dto.setUserMobileNo(user.getMobileNo());
+        dto.setSlotId(slot.getSlotId());
+        dto.setTotalPrice(totalPrice);
+        dto.setBookingStartTime(LocalDateTime.of(slot.getDate(), slot.getStartTime()));
+        dto.setBookingEndTime(LocalDateTime.of(slot.getDate(), slot.getEndTime()));
+
+        return dto;
     }
 
     @Override
@@ -79,55 +90,18 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     public List<BookingDto> getAllBookings() {
-        return bookingRepo.findAll()
-                .stream()
+        return bookingRepo.findAll().stream()
                 .map(this::mapToDto)
                 .collect(Collectors.toList());
-    }
-
-    @Override
-    public BookingDto createBookingWithPayment(Long userId, Long slotId, String razorpayPaymentId) throws Exception {
-        boolean isPaymentValid = paymentService.verifyPayment(razorpayPaymentId);
-        if (!isPaymentValid) {
-            throw new RuntimeException("Payment verification failed. Please try again.");
-        }
-
-        BookingDto dto = BookingDto.builder()
-                .userId(userId)
-                .slotId(slotId)
-                .paymentStatus("PAID")
-                .build();
-
-        return createBooking(dto);
-    }
-
-    private void validateSlotAvailability(SportSlot slot) {
-        boolean alreadyBooked = bookingRepo.existsBySportSlotAndBookingDate(slot, slot.getDate());
-        if (alreadyBooked) {
-            throw new RuntimeException("Slot already booked for this date.");
-        }
-    }
-
-    private void validateSlotTime(SportSlot slot) {
-        int startMin = slot.getStartTime().getMinute();
-        int endMin = slot.getEndTime().getMinute();
-        long durationMinutes = Duration.between(slot.getStartTime(), slot.getEndTime()).toMinutes();
-
-        if (!isValidTimeFormat(startMin) || !isValidTimeFormat(endMin) || durationMinutes < 60) {
-            throw new RuntimeException("Invalid slot time. Start/End must be on :00 or :30, min 1 hour.");
-        }
-    }
-
-    private boolean isValidTimeFormat(int minutes) {
-        return minutes == 0 || minutes == 30;
     }
 
     private BookingDto mapToDto(Booking entity) {
         BookingDto dto = modelMapper.map(entity, BookingDto.class);
         dto.setUserId(entity.getUser().getUserId());
-        dto.setSlotId(entity.getSportSlot().getSlotId());
         dto.setUserName(entity.getUser().getName());
         dto.setUserMobileNo(entity.getUser().getMobileNo());
+        dto.setSlotId(entity.getSportSlot().getSlotId());
+        dto.setBookingStartTime(LocalDateTime.of(entity.getSportSlot().getDate(), entity.getSportSlot().getStartTime()));
         dto.setBookingEndTime(LocalDateTime.of(entity.getSportSlot().getDate(), entity.getSportSlot().getEndTime()));
         return dto;
     }

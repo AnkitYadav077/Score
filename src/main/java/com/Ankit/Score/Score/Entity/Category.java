@@ -22,4 +22,7 @@ public class Category {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private CategoryType type;
+
+    private Integer basePrice;      // For slots till 7 PM
+    private Integer eveningPrice;   // For slots after 7 PM
 }

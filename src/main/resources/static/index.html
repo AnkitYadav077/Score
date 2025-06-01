@@ -1,59 +1,112 @@
-<button id="payButton" data-user-id="5" data-cart-group-id="3">Pay Now</button>
+<!--<button id="payButton" data-user-id="6" data-cart-group-id="4">Pay Now</button>-->
+
+<!--<script src="https://checkout.razorpay.com/v1/checkout.js"></script>-->
+<!--<script>-->
+<!--    document.getElementById("payButton").onclick = async function() {-->
+<!--        const button = this;-->
+<!--        const userId = button.getAttribute('data-user-id');-->
+<!--        const cartGroupId = button.getAttribute('data-cart-group-id');-->
+<!--        const currency = "INR"; // currency ko fix kar diya yahan-->
+
+<!--        try {-->
+<!--            // Query params me cartId and currency bhej rahe hain (POST request with no body)-->
+<!--            const res = await fetch(`http://localhost:8082/api/payment/create?cartId=${cartGroupId}&currency=${currency}`, {-->
+<!--                method: 'POST'-->
+<!--                // No body needed as backend reads from query params-->
+<!--            });-->
+
+<!--            if (!res.ok) throw new Error("Failed to create payment order");-->
+<!--            const data = await res.json();-->
+
+<!--            const options = {-->
+<!--                key: "rzp_test_7SEhinYJRzQIpS",-->
+<!--                amount: data.amount,-->
+<!--                currency: data.currency,-->
+<!--                name: "Score App",-->
+<!--                description: "Food Order Payment",-->
+<!--                order_id: data.orderId,-->
+<!--                handler: async function (response) {-->
+<!--                    console.log("Payment Response:", response);-->
+
+<!--                    // Payment verification ke liye backend me cartId ko query param me bhej rahe hain-->
+<!--                    const verifyRes = await fetch(`http://localhost:8082/api/payment/verify?cartId=${cartGroupId}`, {-->
+<!--                        method: 'POST',-->
+<!--                        headers: { 'Content-Type': 'application/json' },-->
+<!--                        body: JSON.stringify({-->
+<!--                            razorpayOrderId: response.razorpay_order_id,-->
+<!--                            razorpayPaymentId: response.razorpay_payment_id,-->
+<!--                            razorpaySignature: response.razorpay_signature,-->
+<!--                            userId: parseInt(userId),-->
+<!--                            amount: data.amount-->
+<!--                        })-->
+<!--                    });-->
+
+<!--                    const verifyData = await verifyRes.text();-->
+<!--                    if (!verifyRes.ok) throw new Error(verifyData);-->
+<!--                    alert(verifyData);-->
+<!--                },-->
+<!--                theme: { color: "#3399cc" }-->
+<!--            };-->
+
+<!--            const rzp = new Razorpay(options);-->
+<!--            rzp.open();-->
+
+<!--        } catch (error) {-->
+<!--            console.error(error);-->
+<!--            alert("Something went wrong! " + error.message);-->
+<!--        }-->
+<!--    };-->
+<!--</script>-->
+<button id="payButton" data-user-id="1" data-slot-id="5">Pay Now</button>
 
 <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 <script>
     document.getElementById("payButton").onclick = async function() {
         const button = this;
         const userId = button.getAttribute('data-user-id');
-        const cartGroupId = button.getAttribute('data-cart-group-id');
-        const currency = "INR"; // currency ko fix kar diya yahan
+        const slotId = button.getAttribute('data-slot-id');
 
         try {
-            // Query params me cartId and currency bhej rahe hain (POST request with no body)
-            const res = await fetch(`http://localhost:8082/api/payment/create?cartId=${cartGroupId}&currency=${currency}`, {
+            // Step 1️⃣ Create Razorpay Order for Slot Booking
+            const response = await fetch(`http://localhost:8082/api/payment/create/slot?slotId=${slotId}`, {
                 method: 'POST'
-                // No body needed as backend reads from query params
             });
 
-            if (!res.ok) throw new Error("Failed to create payment order");
-            const data = await res.json();
+            if (!response.ok) throw new Error("Failed to create payment order");
+            const orderData = await response.json();
 
+            // Step 2️⃣ Initialize Razorpay Checkout
             const options = {
-                key: "rzp_test_7SEhinYJRzQIpS",
-                amount: data.amount,
-                currency: data.currency,
+                key: "rzp_test_7SEhinYJRzQIpS", // Replace with your Razorpay Test Key
+                amount: orderData.amount, // amount in paise (e.g., 50000 = ₹500)
+                currency: orderData.currency,
                 name: "Score App",
-                description: "Food Order Payment",
-                order_id: data.orderId,
-                handler: async function (response) {
-                    console.log("Payment Response:", response);
+                description: "Slot Booking",
+                order_id: orderData.orderId, // Match the key from backend's createOrderForSlot
 
-                    // Payment verification ke liye backend me cartId ko query param me bhej rahe hain
-                    const verifyRes = await fetch(`http://localhost:8082/api/payment/verify?cartId=${cartGroupId}`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            razorpayOrderId: response.razorpay_order_id,
-                            razorpayPaymentId: response.razorpay_payment_id,
-                            razorpaySignature: response.razorpay_signature,
-                            userId: parseInt(userId),
-                            amount: data.amount
-                        })
-                    });
+                handler: async function (paymentResponse) {
+                    try {
+                        // Step 3️⃣ Confirm Payment & Booking with Backend
+                        const confirmResponse = await fetch(`http://localhost:8082/api/payment/verify/slot?userId=${userId}&slotId=${slotId}&orderId=${paymentResponse.razorpay_order_id}&paymentId=${paymentResponse.razorpay_payment_id}&signature=${paymentResponse.razorpay_signature}`, {
+                            method: 'POST'
+                        });
 
-                    const verifyData = await verifyRes.text();
-                    if (!verifyRes.ok) throw new Error(verifyData);
-                    alert(verifyData);
+                        if (!confirmResponse.ok) throw new Error("Booking confirmation failed");
+                        const result = await confirmResponse.json();
+
+                        alert(`✅ Booking confirmed!\nBooking ID: ${result.booking.id}\nSlot ID: ${result.booking.slotId}`);
+                    } catch (err) {
+                        alert("❌ Booking error: " + err.message);
+                    }
                 },
+
                 theme: { color: "#3399cc" }
             };
 
             const rzp = new Razorpay(options);
             rzp.open();
-
-        } catch (error) {
-            console.error(error);
-            alert("Something went wrong! " + error.message);
+        } catch (err) {
+            alert("❌ Error: " + err.message);
         }
     };
 </script>

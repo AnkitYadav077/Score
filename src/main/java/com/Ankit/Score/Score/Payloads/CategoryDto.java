@@ -13,4 +13,6 @@ public class CategoryDto {
     private Long id;
     private String name;
     private CategoryType type;
+    private Integer basePrice;
+    private Integer eveningPrice;
 }

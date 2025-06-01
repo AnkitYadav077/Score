@@ -21,6 +21,8 @@ public class Payment {
     @Column(nullable = false)
     private Long userId;
 
+    private Long slotId;
+
     @Column(nullable = false)
     private Double amount;
 
