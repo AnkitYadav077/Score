@@ -1,16 +1,19 @@
 package com.Ankit.Score.Score.Service;
 
 import com.Ankit.Score.Score.Entity.Booking;
+import com.Ankit.Score.Score.Entity.Category;
 import com.Ankit.Score.Score.Entity.SportSlot;
 import com.Ankit.Score.Score.Entity.User;
 import com.Ankit.Score.Score.Payloads.BookingDto;
 import com.Ankit.Score.Score.Repo.BookingRepo;
+import com.Ankit.Score.Score.Repo.CategoryRepo;
 import com.Ankit.Score.Score.Repo.SportSlotRepo;
 import com.Ankit.Score.Score.Repo.UserRepo;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -23,6 +26,12 @@ public class BookingServiceImpl implements BookingService {
     private final SportSlotRepo slotRepo;
     private final PaymentService paymentService;
     private final ModelMapper modelMapper;
+
+    @Autowired
+    private CategoryRepo categoryRepository;
+
+
+
 
     @Autowired
     public BookingServiceImpl(BookingRepo bookingRepo, UserRepo userRepo, SportSlotRepo slotRepo,
@@ -106,6 +115,19 @@ public class BookingServiceImpl implements BookingService {
                 .bookingDate(entity.getBookingDate())
                 .totalPrice(entity.getPrice())
                 .build();
+    }
+
+
+    @Override
+    public List<BookingDto> getBookingsByCategoryAndDate(Long categoryId, LocalDate bookingDate) {
+        Category category = categoryRepository.findById(categoryId)
+                .orElseThrow(() -> new RuntimeException("Category not found"));
+
+        List<Booking> bookings = bookingRepo.findBySportSlotCategoryAndBookingDate(category, bookingDate);
+
+        return bookings.stream()
+                .map(this::mapToDto)
+                .collect(Collectors.toList());
     }
 
 }
