@@ -26,10 +26,14 @@ public class Booking {
     @JoinColumn(name = "slot_id", nullable = false)
     private SportSlot sportSlot;
 
+    private String userName; // Store user's name at the time of booking
+    private String userMobileNo; // Store user's mobile number at the time of booking
+
     private String paymentStatus;
     private String status;
 
-    private LocalDateTime bookingTime;  // start time
+    private LocalDateTime bookingStartTime;
+    private LocalDateTime bookingEndTime;
     private LocalDate bookingDate;
 
     private Double price;

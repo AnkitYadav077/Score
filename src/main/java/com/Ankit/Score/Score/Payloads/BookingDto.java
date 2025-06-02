@@ -16,8 +16,8 @@ public class BookingDto {
     private String userMobileNo;
     private String paymentStatus;
     private String status;
-    private LocalDateTime bookingStartTime;  // <== ADD THIS
+    private LocalDateTime bookingStartTime;
     private LocalDateTime bookingEndTime;
     private LocalDate bookingDate;
-    private Integer totalPrice;
+    private Double totalPrice;
 }

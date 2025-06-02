@@ -50,6 +50,9 @@ public class BookingServiceImpl implements BookingService {
         // Calculate price
         int hour = slot.getStartTime().getHour();
         int totalPrice = (hour < 19) ? slot.getCategory().getBasePrice() : slot.getCategory().getEveningPrice();
+        long durationHours = java.time.Duration.between(slot.getStartTime(), slot.getEndTime()).toHours();
+        if (durationHours <= 0) durationHours = 1;
+        totalPrice *= durationHours;
 
         // Mark slot as booked
         slot.setBooked(true);
@@ -59,9 +62,12 @@ public class BookingServiceImpl implements BookingService {
         Booking booking = Booking.builder()
                 .user(user)
                 .sportSlot(slot)
+                .userName(user.getName())
+                .userMobileNo(user.getMobileNo())
                 .paymentStatus("PAID")
                 .status("CONFIRMED")
-                .bookingTime(LocalDateTime.of(slot.getDate(), slot.getStartTime()))
+                .bookingStartTime(LocalDateTime.of(slot.getDate(), slot.getStartTime()))
+                .bookingEndTime(LocalDateTime.of(slot.getDate(), slot.getEndTime()))
                 .bookingDate(slot.getDate())
                 .price((double) totalPrice)
                 .build();
@@ -69,16 +75,7 @@ public class BookingServiceImpl implements BookingService {
         Booking savedBooking = bookingRepo.save(booking);
 
         // Prepare DTO
-        BookingDto dto = modelMapper.map(savedBooking, BookingDto.class);
-        dto.setUserId(user.getUserId());
-        dto.setUserName(user.getName());
-        dto.setUserMobileNo(user.getMobileNo());
-        dto.setSlotId(slot.getSlotId());
-        dto.setTotalPrice(totalPrice);
-        dto.setBookingStartTime(LocalDateTime.of(slot.getDate(), slot.getStartTime()));
-        dto.setBookingEndTime(LocalDateTime.of(slot.getDate(), slot.getEndTime()));
-
-        return dto;
+        return mapToDto(savedBooking);
     }
 
     @Override
@@ -96,13 +93,19 @@ public class BookingServiceImpl implements BookingService {
     }
 
     private BookingDto mapToDto(Booking entity) {
-        BookingDto dto = modelMapper.map(entity, BookingDto.class);
-        dto.setUserId(entity.getUser().getUserId());
-        dto.setUserName(entity.getUser().getName());
-        dto.setUserMobileNo(entity.getUser().getMobileNo());
-        dto.setSlotId(entity.getSportSlot().getSlotId());
-        dto.setBookingStartTime(LocalDateTime.of(entity.getSportSlot().getDate(), entity.getSportSlot().getStartTime()));
-        dto.setBookingEndTime(LocalDateTime.of(entity.getSportSlot().getDate(), entity.getSportSlot().getEndTime()));
-        return dto;
+        return BookingDto.builder()
+                .bookingId(entity.getBookingId())
+                .userId(entity.getUser().getUserId())
+                .slotId(entity.getSportSlot().getSlotId())
+                .userName(entity.getUserName())
+                .userMobileNo(entity.getUserMobileNo())
+                .paymentStatus(entity.getPaymentStatus())
+                .status(entity.getStatus())
+                .bookingStartTime(entity.getBookingStartTime())
+                .bookingEndTime(entity.getBookingEndTime())
+                .bookingDate(entity.getBookingDate())
+                .totalPrice(entity.getPrice())
+                .build();
     }
+
 }
