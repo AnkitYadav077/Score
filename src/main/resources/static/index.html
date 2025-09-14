@@ -1,4 +1,4 @@
-<!--<button id="payButton" data-user-id="6" data-cart-group-id="4">Pay Now</button>-->
+<!--<button id="payButton" data-user-id="5" data-cart-group-id="1">Pay Now</button>-->
 
 <!--<script src="https://checkout.razorpay.com/v1/checkout.js"></script>-->
 <!--<script>-->
@@ -10,7 +10,7 @@
 
 <!--        try {-->
 <!--            // Query params me cartId and currency bhej rahe hain (POST request with no body)-->
-<!--            const res = await fetch(`http://localhost:8082/api/payment/create?cartId=${cartGroupId}&currency=${currency}`, {-->
+<!--            const res = await fetch(`http://localhost:8080/api/payment/create?cartId=${cartGroupId}&currency=${currency}`, {-->
 <!--                method: 'POST'-->
 <!--                // No body needed as backend reads from query params-->
 <!--            });-->
@@ -29,7 +29,7 @@
 <!--                    console.log("Payment Response:", response);-->
 
 <!--                    // Payment verification ke liye backend me cartId ko query param me bhej rahe hain-->
-<!--                    const verifyRes = await fetch(`http://localhost:8082/api/payment/verify?cartId=${cartGroupId}`, {-->
+<!--                    const verifyRes = await fetch(`http://localhost:8080/api/payment/verify?cartId=${cartGroupId}`, {-->
 <!--                        method: 'POST',-->
 <!--                        headers: { 'Content-Type': 'application/json' },-->
 <!--                        body: JSON.stringify({-->
@@ -57,7 +57,7 @@
 <!--        }-->
 <!--    };-->
 <!--</script>-->
-<button id="payButton" data-user-id="1" data-slot-id="7">Pay Now</button>
+<button id="payButton" data-user-id="5" data-slot-id="1">Pay Now</button>
 
 <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 <script>
@@ -68,7 +68,7 @@
 
         try {
             // Step 1️⃣ Create Razorpay Order for Slot Booking
-            const response = await fetch(`http://localhost:8082/api/payment/create/slot?slotId=${slotId}`, {
+            const response = await fetch(`http://localhost:8080/api/payment/create/slot?slotId=${slotId}`, {
                 method: 'POST'
             });
 
@@ -87,7 +87,7 @@
                 handler: async function (paymentResponse) {
                     try {
                         // Step 3️⃣ Confirm Payment & Booking with Backend
-                        const confirmResponse = await fetch(`http://localhost:8082/api/payment/verify/slot?userId=${userId}&slotId=${slotId}&orderId=${paymentResponse.razorpay_order_id}&paymentId=${paymentResponse.razorpay_payment_id}&signature=${paymentResponse.razorpay_signature}`, {
+                        const confirmResponse = await fetch(`http://localhost:8080/api/payment/verify/slot?userId=${userId}&slotId=${slotId}&orderId=${paymentResponse.razorpay_order_id}&paymentId=${paymentResponse.razorpay_payment_id}&signature=${paymentResponse.razorpay_signature}`, {
                             method: 'POST'
                         });
 

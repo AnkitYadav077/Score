@@ -16,7 +16,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -56,21 +58,39 @@ public class CartService {
         FoodItem foodItem = foodItemRepo.findById(foodId)
                 .orElseThrow(() -> new ResourceNotFoundException("FoodItem", "id", foodId));
 
-        CartItem cartItem = new CartItem();
-        cartItem.setUser(cart.getUser());
-        cartItem.setFoodItem(foodItem);
-        cartItem.setQuantity(quantity);
-        cartItem.setPrice(foodItem.getPrice());
-        cartItem.setCart(cart);
+        // Check if item already exists in cart
+        Optional<CartItem> existingItem = cart.getCartItems() != null ?
+                cart.getCartItems().stream()
+                        .filter(item -> item.getFoodItem().getFoodId().equals(foodId))
+                        .findFirst() : Optional.empty();
+
+        CartItem cartItem;
+        if (existingItem.isPresent()) {
+            // Update quantity if item already exists
+            cartItem = existingItem.get();
+            cartItem.setQuantity(cartItem.getQuantity() + quantity);
+        } else {
+            // Create new cart item
+            cartItem = new CartItem();
+            cartItem.setUser(cart.getUser());
+            cartItem.setFoodItem(foodItem);
+            cartItem.setQuantity(quantity);
+            cartItem.setPrice(foodItem.getPrice());
+            cartItem.setCart(cart);
+
+            // Add to cart's item collection
+            if (cart.getCartItems() == null) {
+                cart.setCartItems(new ArrayList<>());
+            }
+            cart.getCartItems().add(cartItem);
+        }
 
         cartItem = cartItemRepo.save(cartItem);
 
-        // Update cart total
-        double total = cart.getCartItems() != null ? cart.getCartItems().stream()
+        // Calculate total from ALL cart items including the new/updated one
+        double total = cart.getCartItems().stream()
                 .mapToDouble(item -> item.getPrice() * item.getQuantity())
-                .sum() : 0;
-        // Include newly added item price as well
-        total += foodItem.getPrice() * quantity;
+                .sum();
 
         cart.setTotalAmount(total);
         cartRepo.save(cart);

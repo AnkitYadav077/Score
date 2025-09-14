@@ -32,6 +32,13 @@ public class CategoryServiceImpl implements CategoryService {
     }
 
     @Override
+    public List<CategoryDto> getCategoriesByType(CategoryType type) {
+        return categoryRepository.findByType(type).stream()
+                .map(category -> modelMapper.map(category, CategoryDto.class))
+                .collect(Collectors.toList());
+    }
+
+    @Override
     public CategoryDto updateCategoryPrice(Long id, Integer basePrice, Integer eveningPrice) {
         Category category = categoryRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Category not found"));
