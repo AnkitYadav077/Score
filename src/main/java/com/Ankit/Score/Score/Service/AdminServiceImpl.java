@@ -53,7 +53,7 @@ public class AdminServiceImpl implements AdminService {
         Admin subAdmin = new Admin();
         subAdmin.setName(request.getName());
         subAdmin.setEmail(request.getEmail());
-        subAdmin.setPassword(request.getPassword());
+        subAdmin.setPassword(request.getPassword()); // Will be encrypted by @PrePersist
         subAdmin.setParentAdmin(parentAdmin);
 
         Admin savedSubAdmin = adminRepo.save(subAdmin);
@@ -63,6 +63,7 @@ public class AdminServiceImpl implements AdminService {
 
         return modelMapper.map(savedSubAdmin, AdminDto.class);
     }
+
 
     @Override
     public AdminDto updateAdmin(AdminDto adminDto, Long id) {

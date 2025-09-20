@@ -2,6 +2,8 @@ package com.Ankit.Score.Score.Entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -35,4 +37,13 @@ public class Admin {
 
     @OneToMany(mappedBy = "performedBy", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<AdminActivity> activities = new ArrayList<>();
+
+    @PrePersist
+    @PreUpdate
+    private void encryptPassword() {
+        if (this.password != null && !this.password.startsWith("$2a$")) {
+            BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
+            this.password = encoder.encode(this.password);
+        }
+    }
 }
