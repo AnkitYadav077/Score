@@ -1,5 +1,8 @@
 package com.Ankit.Score.Score.Security;
 
+import com.Ankit.Score.Score.Service.CustomOAuth2UserService;
+import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -28,13 +31,19 @@ public class SecurityConfig {
     private final JwtAuthenticationEntryPoint point;
     private final JwtAuthenticationFilter filter;
     private final UserDetailsService userDetailsService;
+    private final CustomOAuth2UserService customOAuth2UserService;
+
+
+    @Autowired
+    private OAuth2LoginSuccessHandler oAuth2LoginSuccessHandler;
 
     public SecurityConfig(JwtAuthenticationEntryPoint point,
                           JwtAuthenticationFilter filter,
-                          UserDetailsService userDetailsService) {
+                          UserDetailsService userDetailsService, CustomOAuth2UserService customOAuth2UserService) {
         this.point = point;
         this.filter = filter;
         this.userDetailsService = userDetailsService;
+        this.customOAuth2UserService = customOAuth2UserService;
     }
 
     @Bean
@@ -42,10 +51,22 @@ public class SecurityConfig {
         http.csrf(csrf -> csrf.disable())
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/auth/**","/admin/{id}/subadmin").permitAll() // Allow ALL auth endpoints
+                        .requestMatchers("/auth/**","/admin/{id}/subadmin","/oauth2/**").permitAll() // Allow ALL auth endpoints
                         .requestMatchers("/admin/**").authenticated()
                         .anyRequest().authenticated()
                 )
+                .oauth2Login(oauth2 -> oauth2
+                        .userInfoEndpoint(userInfo -> userInfo
+                                .userService(customOAuth2UserService)
+                        )
+                        .successHandler(oAuth2LoginSuccessHandler)
+                        .failureHandler((request, response, exception) -> {
+                            response.setContentType("application/json");
+                            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                            response.getWriter().write("{\"error\": \"OAuth2 authentication failed: " + exception.getMessage() + "\"}");
+                        })
+                )
+
                 .exceptionHandling(ex -> ex.authenticationEntryPoint(point))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
 
