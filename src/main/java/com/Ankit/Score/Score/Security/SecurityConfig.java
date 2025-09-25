@@ -7,6 +7,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -51,9 +52,12 @@ public class SecurityConfig {
         http.csrf(csrf -> csrf.disable())
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/auth/**","/admin/{id}/subadmin","/oauth2/**").permitAll() // Allow ALL auth endpoints
-                        .requestMatchers("/admin/**").authenticated()
-                        .anyRequest().authenticated()
+                        .requestMatchers("/auth/**", "/oauth2/**", "/api/menu/**").permitAll()
+                        .requestMatchers("/admin/**").hasAnyRole("SUPER_ADMIN", "SUB_ADMIN")
+                        .requestMatchers("/api/cart/**", "/api/orders/**", "/api/payment/**", "/api/bookings/**")
+                        .hasRole("USER")
+                                .requestMatchers("/user").permitAll()
+                                .anyRequest().authenticated()
                 )
                 .oauth2Login(oauth2 -> oauth2
                         .userInfoEndpoint(userInfo -> userInfo
@@ -66,7 +70,6 @@ public class SecurityConfig {
                             response.getWriter().write("{\"error\": \"OAuth2 authentication failed: " + exception.getMessage() + "\"}");
                         })
                 )
-
                 .exceptionHandling(ex -> ex.authenticationEntryPoint(point))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
 

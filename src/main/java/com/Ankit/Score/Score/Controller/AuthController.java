@@ -11,6 +11,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -27,14 +28,18 @@ public class AuthController {
     private final CustomUserDetailsService userDetailsService;
     private final JwtHelper jwtHelper;
     private final AdminRepo adminRepo;
+    private final PasswordEncoder passwordEncoder;
 
     public AuthController(AuthenticationManager authenticationManager,
                           CustomUserDetailsService userDetailsService,
-                          JwtHelper jwtHelper, AdminRepo adminRepo) {
+                          JwtHelper jwtHelper,
+                          AdminRepo adminRepo,
+                          PasswordEncoder passwordEncoder) {
         this.authenticationManager = authenticationManager;
         this.userDetailsService = userDetailsService;
         this.jwtHelper = jwtHelper;
         this.adminRepo = adminRepo;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @PostMapping("/login")
@@ -42,12 +47,12 @@ public class AuthController {
         this.authenticate(request.getEmail(), request.getPassword());
 
         UserDetails userDetails = this.userDetailsService.loadUserByUsername(request.getEmail());
-        Admin admin = userDetailsService.loadAdminByEmail(request.getEmail());
-
-        String token = this.jwtHelper.generateToken(userDetails, admin.getId(), admin.getName());
+        String token = this.jwtHelper.generateToken(userDetails);
 
         Map<String, String> response = new HashMap<>();
         response.put("token", token);
+        response.put("message", "Login successful");
+        response.put("userType", ((com.Ankit.Score.Score.Service.CustomUserDetails) userDetails).getUserType());
 
         return ResponseEntity.ok(response);
     }
@@ -65,26 +70,29 @@ public class AuthController {
 
     @PostMapping("/register")
     public ResponseEntity<Map<String, String>> registerAdmin(@RequestBody AdminRegisterRequest request) {
-        // Check if admin already exists
         if (adminRepo.existsByEmail(request.getEmail())) {
             throw new RuntimeException("Email already exists");
         }
 
-        // Create new admin
         Admin admin = new Admin();
         admin.setName(request.getName());
         admin.setEmail(request.getEmail());
-        admin.setPassword(request.getPassword());
-        admin.setParentAdmin(null); // Super admin has no parent
+
+        // Encode password before saving
+        String encodedPassword = passwordEncoder.encode(request.getPassword());
+        admin.setPassword(encodedPassword);
+
+        admin.setParentAdmin(null);
 
         Admin savedAdmin = adminRepo.save(admin);
 
-        // Generate token
         UserDetails userDetails = userDetailsService.loadUserByUsername(savedAdmin.getEmail());
-        String token = jwtHelper.generateToken(userDetails, savedAdmin.getId(), savedAdmin.getName());
+        String token = jwtHelper.generateToken(userDetails);
 
         Map<String, String> response = new HashMap<>();
         response.put("token", token);
+        response.put("message", "Admin registered successfully");
+        response.put("adminId", savedAdmin.getId().toString());
 
         return ResponseEntity.status(201).body(response);
     }

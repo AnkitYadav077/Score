@@ -52,7 +52,7 @@ public class PaymentService {
 
         Payment payment = Payment.builder()
                 .userId(request.getUserId())
-                .amount(request.getAmount())
+                .amount(request.getAmount()/ 100.0)
                 .paymentMethod("RAZORPAY")
                 .paymentStatus("SUCCESS")
                 .transactionId(request.getRazorpayPaymentId())

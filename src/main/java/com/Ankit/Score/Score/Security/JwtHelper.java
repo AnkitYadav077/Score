@@ -1,5 +1,6 @@
 package com.Ankit.Score.Score.Security;
 
+import com.Ankit.Score.Score.Service.CustomUserDetails;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
@@ -21,7 +22,6 @@ public class JwtHelper {
     public static final long JWT_TOKEN_VALIDITY = 5 * 60 * 60; // 5 hours
     private final SecretKey secretKey = Keys.secretKeyFor(SignatureAlgorithm.HS512);
 
-    // EXISTING METHODS (NO CHANGES)
     public String getUsernameFromToken(String token) {
         return getClaimFromToken(token, Claims::getSubject);
     }
@@ -48,11 +48,19 @@ public class JwtHelper {
         return expiration.before(new Date());
     }
 
-    // EXISTING METHOD (NO CHANGES)
-    public String generateToken(UserDetails userDetails, Long adminId, String name) {
+    public String generateToken(UserDetails userDetails) {
         Map<String, Object> claims = new HashMap<>();
-        claims.put("adminId", adminId);
-        claims.put("name", name);
+
+        if (userDetails instanceof CustomUserDetails customUserDetails) {
+            claims.put("userType", customUserDetails.getUserType());
+            claims.put("userId", customUserDetails.getUserId());
+
+            if (customUserDetails.isAdmin()) {
+                claims.put("adminId", customUserDetails.getUserId());
+            } else {
+                claims.put("userId", customUserDetails.getUserId());
+            }
+        }
 
         // Extract roles as comma-separated string
         String roles = userDetails.getAuthorities().stream()
@@ -63,7 +71,6 @@ public class JwtHelper {
         return doGenerateToken(claims, userDetails.getUsername());
     }
 
-    // EXISTING METHOD (NO CHANGES)
     private String doGenerateToken(Map<String, Object> claims, String subject) {
         return Jwts.builder()
                 .setClaims(claims)
@@ -74,79 +81,44 @@ public class JwtHelper {
                 .compact();
     }
 
-    // EXISTING METHOD (NO CHANGES)
     public Boolean validateToken(String token, UserDetails userDetails) {
         final String username = getUsernameFromToken(token);
         return (username.equals(userDetails.getUsername()) && !isTokenExpired(token));
     }
 
-    // EXISTING METHODS (NO CHANGES)
     public Long getAdminIdFromToken(String token) {
         return getClaimFromToken(token, claims -> claims.get("adminId", Long.class));
     }
 
+    public Long getUserIdFromToken(String token) {
+        return getClaimFromToken(token, claims -> claims.get("userId", Long.class));
+    }
+
+    public String getUserTypeFromToken(String token) {
+        return getClaimFromToken(token, claims -> claims.get("userType", String.class));
+    }
+
     public String getEmailFromToken(String token) {
-        return getClaimFromToken(token, claims -> claims.get("email", String.class));
+        return getClaimFromToken(token, Claims::getSubject);
     }
 
     public String getRolesFromToken(String token) {
         return getClaimFromToken(token, claims -> claims.get("roles", String.class));
     }
 
-    // NEW METHODS FOR OAUTH 2.0
-    /**
-     * Generate token for OAuth2 users
-     */
+    // OAuth2 methods
     public String generateTokenFromOAuthUser(CustomOAuth2User oauthUser) {
         Map<String, Object> claims = new HashMap<>();
         claims.put("userId", oauthUser.getUser().getUserId());
         claims.put("name", oauthUser.getUser().getName());
-        claims.put("email", oauthUser.getUser().getEmail());
+        claims.put("userType", "USER");
 
-        // Extract roles as comma-separated string
         String roles = oauthUser.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority)
                 .collect(Collectors.joining(","));
         claims.put("roles", roles);
-
         claims.put("provider", oauthUser.getUser().getProvider());
 
         return doGenerateToken(claims, oauthUser.getUser().getEmail());
-    }
-
-    /**
-     * Generate token for regular users (without adminId)
-     */
-    public String generateToken(UserDetails userDetails) {
-        Map<String, Object> claims = new HashMap<>();
-
-        // Extract roles as comma-separated string
-        String roles = userDetails.getAuthorities().stream()
-                .map(GrantedAuthority::getAuthority)
-                .collect(Collectors.joining(","));
-        claims.put("roles", roles);
-
-        return doGenerateToken(claims, userDetails.getUsername());
-    }
-
-    /**
-     * Helper method to extract userId from token
-     */
-    public Long getUserIdFromToken(String token) {
-        return getClaimFromToken(token, claims -> claims.get("userId", Long.class));
-    }
-
-    /**
-     * Helper method to extract name from token
-     */
-    public String getNameFromToken(String token) {
-        return getClaimFromToken(token, claims -> claims.get("name", String.class));
-    }
-
-    /**
-     * Helper method to extract provider from token
-     */
-    public String getProviderFromToken(String token) {
-        return getClaimFromToken(token, claims -> claims.get("provider", String.class));
     }
 }

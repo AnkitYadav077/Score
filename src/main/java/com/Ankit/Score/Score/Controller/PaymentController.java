@@ -8,6 +8,7 @@ import com.Ankit.Score.Score.Service.FoodOrderService;
 import com.Ankit.Score.Score.Service.PaymentService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
@@ -29,8 +30,9 @@ public class PaymentController {
     @Autowired
     private FoodOrderService foodOrderService;
 
-    // 1️⃣ Create Payment Order for Food Cart
+    // Create Payment Order for Food Cart - Only Users can create payment orders
     @PostMapping("/create")
+    @PreAuthorize("hasRole('USER')")
     public ResponseEntity<Map<String, Object>> createPaymentOrder(@RequestParam Long cartId,
                                                                   @RequestParam(defaultValue = "INR") String currency) throws Exception {
         Cart cart = cartService.getCartById(cartId);
@@ -45,8 +47,9 @@ public class PaymentController {
         return ResponseEntity.ok(response);
     }
 
-    // 2️⃣ Verify Payment and Place Food Order
+    // Verify Payment and Place Food Order - Only Users can verify payments
     @PostMapping("/verify")
+    @PreAuthorize("hasRole('USER')")
     public ResponseEntity<?> verifyPaymentAndPlaceOrder(@RequestBody PaymentVerificationRequest request,
                                                         @RequestParam Long cartId) {
         try {
@@ -58,26 +61,25 @@ public class PaymentController {
         }
     }
 
-    // 3️⃣ Create Payment Order for Slot Booking
+    // Create Payment Order for Slot Booking - Only Users can create slot payments
     @PostMapping("/create/slot")
+    @PreAuthorize("hasRole('USER')")
     public ResponseEntity<Map<String, Object>> createSlotPaymentOrder(@RequestParam Long slotId,
                                                                       @RequestParam(defaultValue = "INR") String currency) throws Exception {
         Map<String, Object> orderData = paymentService.createOrderForSlot(slotId, currency);
         return ResponseEntity.ok(orderData);
     }
 
-    // 4️⃣ Verify Payment and Create Booking
+    // Verify Payment and Create Booking - Only Users can verify slot payments
     @PostMapping("/verify/slot")
+    @PreAuthorize("hasRole('USER')")
     public ResponseEntity<?> verifyPaymentForSlot(@RequestParam Long userId,
                                                   @RequestParam Long slotId,
                                                   @RequestParam String orderId,
                                                   @RequestParam String paymentId,
                                                   @RequestParam String signature) {
         try {
-            // Verify and Save Payment
             paymentService.verifyAndSavePaymentForSlot(userId, slotId, orderId, paymentId, signature);
-
-            // Create Booking (combine)
             var bookingDto = bookingService.createBookingWithPayment(userId, slotId, orderId, paymentId, signature);
 
             return ResponseEntity.ok(Map.of(
@@ -88,6 +90,4 @@ public class PaymentController {
             return ResponseEntity.badRequest().body(Map.of("error", "Payment verification failed: " + e.getMessage()));
         }
     }
-
-
 }

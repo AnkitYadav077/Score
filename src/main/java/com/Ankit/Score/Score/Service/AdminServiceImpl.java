@@ -9,6 +9,7 @@ import com.Ankit.Score.Score.Repo.AdminActivityRepo;
 import com.Ankit.Score.Score.Repo.AdminRepo;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,21 +23,31 @@ public class AdminServiceImpl implements AdminService {
     private final AdminRepo adminRepo;
     private final AdminActivityRepo adminActivityRepo;
     private final ModelMapper modelMapper;
+    private final PasswordEncoder passwordEncoder;
 
     @Autowired
-    public AdminServiceImpl(AdminRepo adminRepo, AdminActivityRepo adminActivityRepo, ModelMapper modelMapper) {
+    public AdminServiceImpl(AdminRepo adminRepo,
+                            AdminActivityRepo adminActivityRepo,
+                            ModelMapper modelMapper,
+                            PasswordEncoder passwordEncoder) {
         this.adminRepo = adminRepo;
         this.adminActivityRepo = adminActivityRepo;
         this.modelMapper = modelMapper;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @Override
     public AdminDto createAdmin(AdminDto adminDto) {
         Admin admin = modelMapper.map(adminDto, Admin.class);
+
+        // Encode password before saving
+        if (adminDto.getPassword() != null) {
+            String encodedPassword = passwordEncoder.encode(adminDto.getPassword());
+            admin.setPassword(encodedPassword);
+        }
+
         Admin savedAdmin = adminRepo.save(admin);
-
         logActivity(savedAdmin.getId(), "CREATE_ADMIN", "Admin account created");
-
         return modelMapper.map(savedAdmin, AdminDto.class);
     }
 
@@ -53,17 +64,17 @@ public class AdminServiceImpl implements AdminService {
         Admin subAdmin = new Admin();
         subAdmin.setName(request.getName());
         subAdmin.setEmail(request.getEmail());
-        subAdmin.setPassword(request.getPassword()); // Will be encrypted by @PrePersist
+
+        // Encode password before saving
+        String encodedPassword = passwordEncoder.encode(request.getPassword());
+        subAdmin.setPassword(encodedPassword);
+
         subAdmin.setParentAdmin(parentAdmin);
 
         Admin savedSubAdmin = adminRepo.save(subAdmin);
-
-        logActivity(parentAdminId, "CREATE_SUB_ADMIN",
-                "Created sub-admin: " + request.getName() + " (" + request.getEmail() + ")");
-
+        logActivity(parentAdminId, "CREATE_SUB_ADMIN", "Created sub-admin: " + request.getName());
         return modelMapper.map(savedSubAdmin, AdminDto.class);
     }
-
 
     @Override
     public AdminDto updateAdmin(AdminDto adminDto, Long id) {
@@ -73,10 +84,14 @@ public class AdminServiceImpl implements AdminService {
         admin.setName(adminDto.getName());
         admin.setEmail(adminDto.getEmail());
 
+        // Only update password if provided
+        if (adminDto.getPassword() != null && !adminDto.getPassword().isEmpty()) {
+            String encodedPassword = passwordEncoder.encode(adminDto.getPassword());
+            admin.setPassword(encodedPassword);
+        }
+
         Admin updatedAdmin = adminRepo.save(admin);
-
         logActivity(id, "UPDATE_ADMIN", "Admin details updated");
-
         return modelMapper.map(updatedAdmin, AdminDto.class);
     }
 

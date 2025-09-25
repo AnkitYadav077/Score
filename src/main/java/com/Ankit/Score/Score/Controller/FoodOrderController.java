@@ -7,6 +7,7 @@ import com.Ankit.Score.Score.Service.FoodOrderService;
 import com.Ankit.Score.Score.Service.PaymentService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -24,28 +25,33 @@ public class FoodOrderController {
     @Autowired
     private PaymentService paymentService;
 
-    // Place order from Cart with correct parameter (cartId)
+    // Place order from Cart - Only Users can place orders
     @PostMapping("/placeCartOrder")
+    @PreAuthorize("hasRole('USER')")
     public ResponseEntity<List<FoodOrderDto>> placeCartOrder(
-            @RequestParam Long cartId,                    // <-- Changed from userId to cartId
+            @RequestParam Long cartId,
             @RequestParam String razorpayPaymentId
     ) throws Exception {
         List<FoodOrderDto> orders = foodOrderService.placeOrderFromCart(cartId, razorpayPaymentId);
         return ResponseEntity.status(201).body(orders);
     }
 
+    // Search food - Public access
     @GetMapping("/search")
     public ResponseEntity<List<FoodItemDto>> searchFood(@RequestParam String keyword) {
         return ResponseEntity.ok(foodItemService.searchFood(keyword));
     }
 
-    // Get all orders
+    // Get all orders - Only Admin can view all orders
     @GetMapping("/admin")
+    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'SUB_ADMIN')")
     public List<FoodOrderDto> getAllOrders() {
         return foodOrderService.getAllOrders();
     }
 
+    // Get orders for user - User can view their own orders
     @GetMapping("/user/{userId}")
+    @PreAuthorize("hasRole('USER') and #userId == authentication.principal.userId")
     public ResponseEntity<List<FoodOrderDto>> getOrdersForUser(@PathVariable Long userId) {
         List<FoodOrderDto> orders = foodOrderService.getOrdersForUser(userId);
         return ResponseEntity.ok(orders);
