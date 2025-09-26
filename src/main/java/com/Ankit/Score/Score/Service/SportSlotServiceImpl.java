@@ -133,50 +133,190 @@ public class SportSlotServiceImpl implements SportSlotService {
         boolean validStart = (startMin == 0 || startMin == 30) && startSec == 0 && startNano == 0;
         boolean validEndPrecision = endSec == 0 && endNano == 0;
 
-        long duration = Duration.between(dto.getStartTime(), dto.getEndTime()).toMinutes();
+        // Handle overnight slots (end time is earlier than start time)
+        long durationMinutes;
+        if (dto.getEndTime().isBefore(dto.getStartTime())) {
+            // Overnight slot - calculate duration across midnight
+            durationMinutes = Duration.between(dto.getStartTime(), LocalTime.MAX).toMinutes() + 1 + // until midnight
+                    Duration.between(LocalTime.MIN, dto.getEndTime()).toMinutes(); // from midnight
+        } else {
+            // Normal slot within the same day
+            durationMinutes = Duration.between(dto.getStartTime(), dto.getEndTime()).toMinutes();
+        }
 
-        if (!validStart || !validEndPrecision || duration < 60) {
+        if (!validStart || !validEndPrecision || durationMinutes < 60) {
             throw new IllegalArgumentException("Invalid Slot Time: Start time must be at :00 or :30, end time precision must be zero seconds, and duration must be at least 1 hour.");
         }
     }
 
+
+
     private void checkSlotConflict(SportSlotDto dto) {
-        List<SportSlot> conflicts = sportSlotRepo.findByCategory_Id(dto.getCategory().getId()).stream()
-                .filter(slot -> slot.getDate().equals(dto.getDate()) &&
-                        (slot.getStartTime().equals(dto.getStartTime()) || slot.getEndTime().equals(dto.getEndTime()) ||
-                                (dto.getStartTime().isBefore(slot.getEndTime()) && dto.getEndTime().isAfter(slot.getStartTime()))))
+        List<SportSlot> existingSlots = sportSlotRepo.findByCategory_Id(dto.getCategory().getId());
+
+        List<SportSlot> conflicts = existingSlots.stream()
+                .filter(slot -> slot.getDate().equals(dto.getDate()))
+                .filter(slot -> {
+                    boolean isOvernightSlot = dto.getEndTime().isBefore(dto.getStartTime());
+                    boolean existingIsOvernight = slot.getEndTime().isBefore(slot.getStartTime());
+
+                    if (isOvernightSlot && existingIsOvernight) {
+                        // Both are overnight slots - they overlap if they share the same date
+                        return true;
+                    } else if (isOvernightSlot) {
+                        // New slot is overnight, existing is normal
+                        return dto.getStartTime().isBefore(slot.getEndTime()) ||
+                                dto.getEndTime().isAfter(slot.getStartTime());
+                    } else if (existingIsOvernight) {
+                        // Existing slot is overnight, new is normal
+                        return slot.getStartTime().isBefore(dto.getEndTime()) ||
+                                slot.getEndTime().isAfter(dto.getStartTime());
+                    } else {
+                        // Both are normal slots
+                        return (dto.getStartTime().isBefore(slot.getEndTime()) &&
+                                dto.getEndTime().isAfter(slot.getStartTime()));
+                    }
+                })
                 .collect(Collectors.toList());
+
         if (!conflicts.isEmpty()) {
             throw new IllegalArgumentException("Slot timing overlaps with existing slot for the same category.");
         }
     }
 
     private void checkSlotConflictForUpdate(Long slotId, SportSlotDto dto) {
-        List<SportSlot> conflicts = sportSlotRepo.findByCategory_Id(dto.getCategory().getId()).stream()
-                .filter(slot -> !slot.getSlotId().equals(slotId) &&
-                        slot.getDate().equals(dto.getDate()) &&
-                        (slot.getStartTime().equals(dto.getStartTime()) || slot.getEndTime().equals(dto.getEndTime()) ||
-                                (dto.getStartTime().isBefore(slot.getEndTime()) && dto.getEndTime().isAfter(slot.getStartTime()))))
+        List<SportSlot> existingSlots = sportSlotRepo.findByCategory_Id(dto.getCategory().getId());
+
+        List<SportSlot> conflicts = existingSlots.stream()
+                .filter(slot -> !slot.getSlotId().equals(slotId) && slot.getDate().equals(dto.getDate()))
+                .filter(slot -> {
+                    boolean isOvernightSlot = dto.getEndTime().isBefore(dto.getStartTime());
+                    boolean existingIsOvernight = slot.getEndTime().isBefore(slot.getStartTime());
+
+                    if (isOvernightSlot && existingIsOvernight) {
+                        return true;
+                    } else if (isOvernightSlot) {
+                        return dto.getStartTime().isBefore(slot.getEndTime()) ||
+                                dto.getEndTime().isAfter(slot.getStartTime());
+                    } else if (existingIsOvernight) {
+                        return slot.getStartTime().isBefore(dto.getEndTime()) ||
+                                slot.getEndTime().isAfter(dto.getStartTime());
+                    } else {
+                        return (dto.getStartTime().isBefore(slot.getEndTime()) &&
+                                dto.getEndTime().isAfter(slot.getStartTime()));
+                    }
+                })
                 .collect(Collectors.toList());
+
         if (!conflicts.isEmpty()) {
             throw new IllegalArgumentException("Slot timing overlaps with existing slot for the same category.");
         }
     }
 
+
+
     private Integer calculateTotalPrice(SportSlot slot) {
-        long hours = Duration.between(slot.getStartTime(), slot.getEndTime()).toHours();
+        LocalTime startTime = slot.getStartTime();
+        LocalTime endTime = slot.getEndTime();
         Category category = slot.getCategory();
-        int pricePerHour;
 
-        if (slot.getStartTime().isAfter(LocalTime.of(17, 0))) {
-            pricePerHour = category.getEveningPrice();
+        LocalTime eveningStart = LocalTime.of(19, 0);
+        LocalTime morningBaseStart = LocalTime.of(6, 0);
+
+        boolean isOvernight = endTime.isBefore(startTime);
+
+        if (isOvernight) {
+            return calculateOvernightPriceOptimized(startTime, endTime, category, eveningStart, morningBaseStart);
         } else {
-            pricePerHour = category.getBasePrice();
+            return calculateNormalPriceOptimized(startTime, endTime, category, eveningStart, morningBaseStart);
         }
-
-        return (int) (pricePerHour * hours);
     }
 
+    private int calculateOvernightPriceOptimized(LocalTime start, LocalTime end, Category category,
+                                                 LocalTime eveningStart, LocalTime morningBaseStart) {
+        // Convert to minutes since midnight
+        int startMin = start.getHour() * 60 + start.getMinute();
+        int endMin = end.getHour() * 60 + end.getMinute();
+        int eveningStartMin = eveningStart.getHour() * 60 + eveningStart.getMinute();
+        int morningBaseStartMin = morningBaseStart.getHour() * 60 + morningBaseStart.getMinute();
+
+        // Adjust for overnight
+        endMin += 24 * 60;
+
+        int totalMinutes = endMin - startMin;
+
+        // Calculate minutes for each price segment
+        int eveningPriceMinutes = 0;
+        int basePriceMinutes = 0;
+
+        int current = startMin;
+        while (current < endMin) {
+            int nextHour = current + 60;
+            if (nextHour > endMin) {
+                nextHour = endMin;
+            }
+
+            // Determine which price applies to this segment
+            int segmentCurrent = current % (24 * 60); // Normalize to 0-1440 minutes
+            int pricePerHour;
+
+            if (segmentCurrent < morningBaseStartMin || segmentCurrent >= eveningStartMin) {
+                // Evening price (before 6 AM or after 7 PM)
+                pricePerHour = category.getEveningPrice();
+                eveningPriceMinutes += (nextHour - current);
+            } else {
+                // Base price (6 AM to 7 PM)
+                pricePerHour = category.getBasePrice();
+                basePriceMinutes += (nextHour - current);
+            }
+
+            current = nextHour;
+        }
+
+        double eveningHours = eveningPriceMinutes / 60.0;
+        double baseHours = basePriceMinutes / 60.0;
+
+        return (int) Math.round((category.getEveningPrice() * eveningHours) +
+                (category.getBasePrice() * baseHours));
+    }
+
+    private int calculateNormalPriceOptimized(LocalTime start, LocalTime end, Category category,
+                                              LocalTime eveningStart, LocalTime morningBaseStart) {
+        int startMin = start.getHour() * 60 + start.getMinute();
+        int endMin = end.getHour() * 60 + end.getMinute();
+        int eveningStartMin = eveningStart.getHour() * 60 + eveningStart.getMinute();
+        int morningBaseStartMin = morningBaseStart.getHour() * 60 + morningBaseStart.getMinute();
+
+        int eveningMinutes = 0;
+        int baseMinutes = 0;
+
+        int current = startMin;
+        while (current < endMin) {
+            int next = Math.min(current + 60, endMin);
+
+            if (current < morningBaseStartMin || current >= eveningStartMin) {
+                eveningMinutes += (next - current);
+            } else {
+                baseMinutes += (next - current);
+            }
+
+            current = next;
+        }
+
+        double eveningHours = eveningMinutes / 60.0;
+        double baseHours = baseMinutes / 60.0;
+
+        return (int) Math.round((category.getEveningPrice() * eveningHours) +
+                (category.getBasePrice() * baseHours));
+    }
+
+//    private int calculateSegmentPrice(LocalTime start, LocalTime end, Category category, LocalTime eveningStart) {
+//        // Simple calculation: if any part is after 7 PM, use evening price
+//        if (start.isAfter(eveningStart) || end.isAfter(eveningStart)) {
+//            return category.getEveningPrice();
+//        }
+//        return category.getBasePrice();
+//    }
     private SportSlot dtoToEntity(SportSlotDto dto) {
         SportSlot slot = modelMapper.map(dto, SportSlot.class);
         if (dto.getCategory() != null && dto.getCategory().getId() != null) {
