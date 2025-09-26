@@ -1,9 +1,721 @@
+<!--<!DOCTYPE html>-->
+<!--<html lang="en">-->
+<!--<head>-->
+<!--    <meta charset="UTF-8">-->
+<!--    <meta name="viewport" content="width=device-width, initial-scale=1.0">-->
+<!--    <title>Score App - Food Order Payment</title>-->
+<!--    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>-->
+<!--    <style>-->
+<!--        * {-->
+<!--            margin: 0;-->
+<!--            padding: 0;-->
+<!--            box-sizing: border-box;-->
+<!--            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;-->
+<!--        }-->
+
+<!--        body {-->
+<!--            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);-->
+<!--            min-height: 100vh;-->
+<!--            display: flex;-->
+<!--            justify-content: center;-->
+<!--            align-items: center;-->
+<!--            padding: 20px;-->
+<!--        }-->
+
+<!--        .container {-->
+<!--            width: 100%;-->
+<!--            max-width: 500px;-->
+<!--            background: white;-->
+<!--            border-radius: 12px;-->
+<!--            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);-->
+<!--            overflow: hidden;-->
+<!--        }-->
+
+<!--        .header {-->
+<!--            background: linear-gradient(135deg, #3399cc 0%, #2c3e50 100%);-->
+<!--            color: white;-->
+<!--            padding: 25px;-->
+<!--            text-align: center;-->
+<!--        }-->
+
+<!--        .header h1 {-->
+<!--            font-size: 24px;-->
+<!--            margin-bottom: 5px;-->
+<!--        }-->
+
+<!--        .header p {-->
+<!--            opacity: 0.9;-->
+<!--            font-size: 14px;-->
+<!--        }-->
+
+<!--        .content {-->
+<!--            padding: 25px;-->
+<!--        }-->
+
+<!--        .input-section {-->
+<!--            margin-bottom: 20px;-->
+<!--        }-->
+
+<!--        .input-group {-->
+<!--            margin-bottom: 15px;-->
+<!--        }-->
+
+<!--        .input-group label {-->
+<!--            display: block;-->
+<!--            margin-bottom: 5px;-->
+<!--            color: #2c3e50;-->
+<!--            font-weight: 500;-->
+<!--        }-->
+
+<!--        .input-group input, .input-group textarea {-->
+<!--            width: 100%;-->
+<!--            padding: 12px 15px;-->
+<!--            border: 1px solid #ddd;-->
+<!--            border-radius: 6px;-->
+<!--            font-size: 14px;-->
+<!--            transition: border 0.3s;-->
+<!--        }-->
+
+<!--        .input-group input:focus, .input-group textarea:focus {-->
+<!--            outline: none;-->
+<!--            border-color: #3399cc;-->
+<!--            box-shadow: 0 0 0 2px rgba(51, 153, 204, 0.2);-->
+<!--        }-->
+
+<!--        .input-group textarea {-->
+<!--            resize: vertical;-->
+<!--            min-height: 80px;-->
+<!--            font-family: monospace;-->
+<!--            font-size: 12px;-->
+<!--        }-->
+
+<!--        .token-section {-->
+<!--            background: #f8f9fa;-->
+<!--            border-radius: 8px;-->
+<!--            padding: 15px;-->
+<!--            margin-bottom: 20px;-->
+<!--            border: 1px solid #e9ecef;-->
+<!--        }-->
+
+<!--        .token-section h3 {-->
+<!--            color: #2c3e50;-->
+<!--            margin-bottom: 10px;-->
+<!--            font-size: 16px;-->
+<!--            display: flex;-->
+<!--            align-items: center;-->
+<!--        }-->
+
+<!--        .token-section h3 svg {-->
+<!--            margin-right: 8px;-->
+<!--        }-->
+
+<!--        .token-display {-->
+<!--            background: white;-->
+<!--            border: 1px dashed #ccc;-->
+<!--            border-radius: 6px;-->
+<!--            padding: 12px;-->
+<!--            font-family: monospace;-->
+<!--            font-size: 12px;-->
+<!--            word-break: break-all;-->
+<!--            margin-bottom: 10px;-->
+<!--            color: #495057;-->
+<!--            min-height: 60px;-->
+<!--        }-->
+
+<!--        .token-actions {-->
+<!--            display: flex;-->
+<!--            gap: 10px;-->
+<!--        }-->
+
+<!--        .btn {-->
+<!--            padding: 10px 15px;-->
+<!--            border: none;-->
+<!--            border-radius: 6px;-->
+<!--            cursor: pointer;-->
+<!--            font-weight: 600;-->
+<!--            transition: all 0.3s ease;-->
+<!--            display: flex;-->
+<!--            align-items: center;-->
+<!--            justify-content: center;-->
+<!--            gap: 5px;-->
+<!--        }-->
+
+<!--        .btn-copy {-->
+<!--            background: #3399cc;-->
+<!--            color: white;-->
+<!--            flex: 1;-->
+<!--        }-->
+
+<!--        .btn-copy:hover {-->
+<!--            background: #2a7ba6;-->
+<!--        }-->
+
+<!--        .btn-refresh {-->
+<!--            background: #28a745;-->
+<!--            color: white;-->
+<!--            flex: 1;-->
+<!--        }-->
+
+<!--        .btn-refresh:hover {-->
+<!--            background: #218838;-->
+<!--        }-->
+
+<!--        .btn-clear {-->
+<!--            background: #dc3545;-->
+<!--            color: white;-->
+<!--            flex: 1;-->
+<!--        }-->
+
+<!--        .btn-clear:hover {-->
+<!--            background: #c82333;-->
+<!--        }-->
+
+<!--        .booking-details {-->
+<!--            margin-bottom: 25px;-->
+<!--            background: #f8f9fa;-->
+<!--            border-radius: 8px;-->
+<!--            padding: 15px;-->
+<!--        }-->
+
+<!--        .detail-item {-->
+<!--            display: flex;-->
+<!--            justify-content: space-between;-->
+<!--            padding: 12px 0;-->
+<!--            border-bottom: 1px solid #e9ecef;-->
+<!--        }-->
+
+<!--        .detail-item:last-child {-->
+<!--            border-bottom: none;-->
+<!--        }-->
+
+<!--        .detail-label {-->
+<!--            color: #6c757d;-->
+<!--            font-weight: 500;-->
+<!--        }-->
+
+<!--        .detail-value {-->
+<!--            color: #2c3e50;-->
+<!--            font-weight: 600;-->
+<!--        }-->
+
+<!--        .payment-section {-->
+<!--            text-align: center;-->
+<!--        }-->
+
+<!--        .btn-pay {-->
+<!--            background: linear-gradient(135deg, #3399cc 0%, #2c3e50 100%);-->
+<!--            color: white;-->
+<!--            padding: 15px 30px;-->
+<!--            font-size: 16px;-->
+<!--            width: 100%;-->
+<!--            border-radius: 8px;-->
+<!--            box-shadow: 0 4px 15px rgba(51, 153, 204, 0.3);-->
+<!--        }-->
+
+<!--        .btn-pay:hover {-->
+<!--            transform: translateY(-2px);-->
+<!--            box-shadow: 0 6px 20px rgba(51, 153, 204, 0.4);-->
+<!--        }-->
+
+<!--        .btn-pay:active {-->
+<!--            transform: translateY(0);-->
+<!--        }-->
+
+<!--        .footer {-->
+<!--            text-align: center;-->
+<!--            padding: 15px;-->
+<!--            color: #6c757d;-->
+<!--            font-size: 12px;-->
+<!--            border-top: 1px solid #e9ecef;-->
+<!--        }-->
+
+<!--        .status-message {-->
+<!--            padding: 12px;-->
+<!--            border-radius: 6px;-->
+<!--            margin-top: 15px;-->
+<!--            text-align: center;-->
+<!--            display: none;-->
+<!--        }-->
+
+<!--        .success {-->
+<!--            background: #d4edda;-->
+<!--            color: #155724;-->
+<!--            border: 1px solid #c3e6cb;-->
+<!--        }-->
+
+<!--        .error {-->
+<!--            background: #f8d7da;-->
+<!--            color: #721c24;-->
+<!--            border: 1px solid #f5c6cb;-->
+<!--        }-->
+
+<!--        .loading {-->
+<!--            display: inline-block;-->
+<!--            width: 20px;-->
+<!--            height: 20px;-->
+<!--            border: 3px solid rgba(255,255,255,.3);-->
+<!--            border-radius: 50%;-->
+<!--            border-top-color: #fff;-->
+<!--            animation: spin 1s ease-in-out infinite;-->
+<!--        }-->
+
+<!--        @keyframes spin {-->
+<!--            to { transform: rotate(360deg); }-->
+<!--        }-->
+
+<!--        .hidden {-->
+<!--            display: none;-->
+<!--        }-->
+
+<!--        .payment-info {-->
+<!--            background: #e8f4fc;-->
+<!--            border-radius: 8px;-->
+<!--            padding: 15px;-->
+<!--            margin-bottom: 20px;-->
+<!--            border-left: 4px solid #3399cc;-->
+<!--        }-->
+
+<!--        .payment-info h3 {-->
+<!--            color: #2c3e50;-->
+<!--            margin-bottom: 10px;-->
+<!--            font-size: 16px;-->
+<!--        }-->
+
+<!--        .payment-info p {-->
+<!--            color: #495057;-->
+<!--            font-size: 14px;-->
+<!--            line-height: 1.5;-->
+<!--        }-->
+
+<!--        .token-input-section {-->
+<!--            margin-bottom: 15px;-->
+<!--        }-->
+
+<!--        .token-preview {-->
+<!--            font-size: 10px;-->
+<!--            color: #6c757d;-->
+<!--            margin-top: 5px;-->
+<!--            word-break: break-all;-->
+<!--            max-height: 40px;-->
+<!--            overflow: hidden;-->
+<!--        }-->
+<!--    </style>-->
+<!--</head>-->
+<!--<body>-->
+<!--<div class="container">-->
+<!--    <div class="header">-->
+<!--        <h1>Score App</h1>-->
+<!--        <p>Complete your food order with secure payment</p>-->
+<!--    </div>-->
+
+<!--    <div class="content">-->
+<!--        <div class="payment-info">-->
+<!--            <h3>Payment Information</h3>-->
+<!--            <p>Enter your User ID, Cart ID, and Authentication Token to proceed with payment.</p>-->
+<!--        </div>-->
+
+<!--        <div class="input-section">-->
+<!--            <div class="input-group">-->
+<!--                <label for="userIdInput">User ID</label>-->
+<!--                <input type="text" id="userIdInput" placeholder="Enter User ID" value="5">-->
+<!--            </div>-->
+
+<!--            <div class="input-group">-->
+<!--                <label for="cartIdInput">Cart Group ID</label>-->
+<!--                <input type="text" id="cartIdInput" placeholder="Enter Cart Group ID" value="1">-->
+<!--            </div>-->
+
+<!--            <div class="token-input-section">-->
+<!--                <div class="input-group">-->
+<!--                    <label for="tokenInput">Authentication Token</label>-->
+<!--                    <textarea id="tokenInput" placeholder="Paste your JWT token here">eyJhbGciOiJIUzUxMiJ9.eyJwcm92aWRlciI6ImdpdGh1YiIsInJvbGVzIjoiUk9MRV9VU0VSIiwibmFtZSI6IkFua2l0IFlhZGF2IiwidXNlclR5cGUiOiJVU0VSIiwidXNlcklkIjoxLCJzdWIiOiJhbmtpdHlhZGF2MDcwMjIwMDNAZ21haWwuY29tIiwiaWF0IjoxNzU4NzMzMTU5LCJleHAiOjE3NTg3NTExNTl9.6Y_-HkNWT3J1oQOSnwWDJf54MH-dI8ptYAJxEf3aIZfsXsBrRb2Bj9hLmWFL582-CpZnRlWf5mSCWR-lsSeAlA</textarea>-->
+<!--                </div>-->
+<!--                <div class="token-preview" id="tokenPreview"></div>-->
+<!--            </div>-->
+<!--        </div>-->
+
+<!--        <div class="token-section">-->
+<!--            <h3>-->
+<!--                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">-->
+<!--                    <path d="M12 15C13.6569 15 15 13.6569 15 12C15 10.3431 13.6569 9 12 9C10.3431 9 9 10.3431 9 12C9 13.6569 10.3431 15 12 15Z" stroke="currentColor" stroke-width="2"/>-->
+<!--                    <path d="M17 7H7C4.23858 7 2 9.23858 2 12C2 14.7614 4.23858 17 7 17H17C19.7614 17 22 14.7614 22 12C22 9.23858 19.7614 7 17 7Z" stroke="currentColor" stroke-width="2"/>-->
+<!--                </svg>-->
+<!--                Token Preview-->
+<!--            </h3>-->
+<!--            <div class="token-display" id="tokenDisplay">eyJhbGciOiJIUzUxMiJ9.eyJwcm92aWRlciI6ImdpdGh1YiIsInJvbGVzIjoiUk9MRV9VU0VSIiwibmFtZSI6IkFua2l0IFlhZGF2IiwidXNlclR5cGUiOiJVU0VSIiwidXNlcklkIjoxLCJzdWIiOiJhbmtpdHlhZGF2MDcwMjIwMDNAZ21haWwuY29tIiwiaWF0IjoxNzU4NzMzMTU5LCJleHAiOjE3NTg3NTExNTl9.6Y_-HkNWT3J1oQOSnwWDJf54MH-dI8ptYAJxEf3aIZfsXsBrRb2Bj9hLmWFL582-CpZnRlWf5mSCWR-lsSeAlA</div>-->
+<!--            <div class="token-actions">-->
+<!--                <button class="btn btn-copy" id="copyToken">-->
+<!--                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">-->
+<!--                        <path d="M8 5H6C4.89543 5 4 5.89543 4 7V19C4 20.1046 4.89543 21 6 21H16C17.1046 21 18 20.1046 18 19V18M8 5C8 6.10457 8.89543 7 10 7H14C15.1046 7 16 6.10457 16 5M8 5C8 3.89543 8.89543 3 10 3H14C15.1046 3 16 3.89543 16 5M16 5H18C19.1046 5 20 5.89543 20 7V12M12 15H15M12 11H15M12 19H15H12Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>-->
+<!--                    </svg>-->
+<!--                    Copy Token-->
+<!--                </button>-->
+<!--                <button class="btn btn-refresh" id="refreshToken">-->
+<!--                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">-->
+<!--                        <path d="M4 4V9H4.58152M19.9381 11C19.446 7.05369 16.0796 4 12 4C8.64262 4 5.76829 6.06817 4.58152 9M4.58152 9H9M20 20V15H19.4185M19.4185 15C18.2317 17.9318 15.3574 20 12 20C7.92038 20 4.55399 16.9463 4.06189 13M19.4185 15H15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>-->
+<!--                    </svg>-->
+<!--                    Update-->
+<!--                </button>-->
+<!--                <button class="btn btn-clear" id="clearToken">-->
+<!--                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">-->
+<!--                        <path d="M6 6L18 18M6 18L18 6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>-->
+<!--                    </svg>-->
+<!--                    Clear-->
+<!--                </button>-->
+<!--            </div>-->
+<!--        </div>-->
+
+<!--        <div class="booking-details">-->
+<!--            <h3 style="margin-bottom: 15px;">Order Summary</h3>-->
+<!--            <div class="detail-item">-->
+<!--                <span class="detail-label">User ID:</span>-->
+<!--                <span class="detail-value" id="userIdDisplay">5</span>-->
+<!--            </div>-->
+<!--            <div class="detail-item">-->
+<!--                <span class="detail-label">Cart Group ID:</span>-->
+<!--                <span class="detail-value" id="cartIdDisplay">1</span>-->
+<!--            </div>-->
+<!--            <div class="detail-item">-->
+<!--                <span class="detail-label">Currency:</span>-->
+<!--                <span class="detail-value" id="currencyDisplay">INR</span>-->
+<!--            </div>-->
+<!--            <div class="detail-item">-->
+<!--                <span class="detail-label">Amount:</span>-->
+<!--                <span class="detail-value" id="amountDisplay">-</span>-->
+<!--            </div>-->
+<!--            <div class="detail-item">-->
+<!--                <span class="detail-label">Token Status:</span>-->
+<!--                <span class="detail-value" id="tokenStatusDisplay">Valid</span>-->
+<!--            </div>-->
+<!--        </div>-->
+
+<!--        <div class="payment-section">-->
+<!--            <button class="btn btn-pay" id="payButton">-->
+<!--                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">-->
+<!--                    <path d="M20 7H4C2.89543 7 2 7.89543 2 9V17C2 18.1046 2.89543 19 4 19H20C21.1046 19 22 18.1046 22 17V9C22 7.89543 21.1046 7 20 7Z" stroke="currentColor" stroke-width="2"/>-->
+<!--                    <path d="M2 10H22" stroke="currentColor" stroke-width="2"/>-->
+<!--                    <path d="M6 15H7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>-->
+<!--                    <path d="M10 15H14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>-->
+<!--                </svg>-->
+<!--                Pay Now-->
+<!--            </button>-->
+
+<!--            <div id="statusMessage" class="status-message"></div>-->
+<!--        </div>-->
+<!--    </div>-->
+
+<!--    <div class="footer">-->
+<!--        <p>Secure payment powered by Razorpay</p>-->
+<!--    </div>-->
+<!--</div>-->
+
+<!--<script>-->
+<!--    document.addEventListener('DOMContentLoaded', function() {-->
+<!--        const payButton = document.getElementById('payButton');-->
+<!--        const copyTokenBtn = document.getElementById('copyToken');-->
+<!--        const refreshTokenBtn = document.getElementById('refreshToken');-->
+<!--        const clearTokenBtn = document.getElementById('clearToken');-->
+<!--        const tokenDisplay = document.getElementById('tokenDisplay');-->
+<!--        const tokenInput = document.getElementById('tokenInput');-->
+<!--        const tokenPreview = document.getElementById('tokenPreview');-->
+<!--        const statusMessage = document.getElementById('statusMessage');-->
+<!--        const userIdInput = document.getElementById('userIdInput');-->
+<!--        const cartIdInput = document.getElementById('cartIdInput');-->
+<!--        const userIdDisplay = document.getElementById('userIdDisplay');-->
+<!--        const cartIdDisplay = document.getElementById('cartIdDisplay');-->
+<!--        const amountDisplay = document.getElementById('amountDisplay');-->
+<!--        const tokenStatusDisplay = document.getElementById('tokenStatusDisplay');-->
+
+<!--        // Update token preview as user types-->
+<!--        tokenInput.addEventListener('input', function() {-->
+<!--            const token = tokenInput.value.trim();-->
+<!--            if (token.length > 100) {-->
+<!--                tokenPreview.textContent = token.substring(0, 100) + '...';-->
+<!--            } else {-->
+<!--                tokenPreview.textContent = token;-->
+<!--            }-->
+
+<!--            // Update token display-->
+<!--            tokenDisplay.textContent = token || 'No token provided';-->
+
+<!--            // Update token status-->
+<!--            updateTokenStatus(token);-->
+<!--        });-->
+
+<!--        // Update displayed values when inputs change-->
+<!--        userIdInput.addEventListener('input', updateDisplay);-->
+<!--        cartIdInput.addEventListener('input', updateDisplay);-->
+
+<!--        function updateDisplay() {-->
+<!--            userIdDisplay.textContent = userIdInput.value || '-';-->
+<!--            cartIdDisplay.textContent = cartIdInput.value || '-';-->
+<!--        }-->
+
+<!--        function updateTokenStatus(token) {-->
+<!--            if (!token) {-->
+<!--                tokenStatusDisplay.textContent = 'Missing';-->
+<!--                tokenStatusDisplay.style.color = '#dc3545';-->
+<!--                return;-->
+<!--            }-->
+
+<!--            // Simple JWT validation (check if it has 3 parts)-->
+<!--            const parts = token.split('.');-->
+<!--            if (parts.length !== 3) {-->
+<!--                tokenStatusDisplay.textContent = 'Invalid Format';-->
+<!--                tokenStatusDisplay.style.color = '#dc3545';-->
+<!--                return;-->
+<!--            }-->
+
+<!--            // Check if token is expired (basic check)-->
+<!--            try {-->
+<!--                const payload = JSON.parse(atob(parts[1]));-->
+<!--                const exp = payload.exp * 1000; // Convert to milliseconds-->
+<!--                const now = Date.now();-->
+
+<!--                if (exp < now) {-->
+<!--                    tokenStatusDisplay.textContent = 'Expired';-->
+<!--                    tokenStatusDisplay.style.color = '#dc3545';-->
+<!--                } else {-->
+<!--                    tokenStatusDisplay.textContent = 'Valid';-->
+<!--                    tokenStatusDisplay.style.color = '#28a745';-->
+<!--                }-->
+<!--            } catch (e) {-->
+<!--                tokenStatusDisplay.textContent = 'Invalid';-->
+<!--                tokenStatusDisplay.style.color = '#dc3545';-->
+<!--            }-->
+<!--        }-->
+
+<!--        // Copy token to clipboard-->
+<!--        copyTokenBtn.addEventListener('click', function() {-->
+<!--            const token = tokenDisplay.textContent;-->
+<!--            if (token === 'No token provided') {-->
+<!--                showStatus('No token to copy', 'error');-->
+<!--                return;-->
+<!--            }-->
+
+<!--            navigator.clipboard.writeText(token).then(function() {-->
+<!--                showStatus('Token copied to clipboard!', 'success');-->
+<!--            }, function() {-->
+<!--                showStatus('Failed to copy token', 'error');-->
+<!--            });-->
+<!--        });-->
+
+<!--        // Update token from input-->
+<!--        refreshTokenBtn.addEventListener('click', function() {-->
+<!--            const token = tokenInput.value.trim();-->
+<!--            if (!token) {-->
+<!--                showStatus('Please enter a token first', 'error');-->
+<!--                return;-->
+<!--            }-->
+
+<!--            tokenDisplay.textContent = token;-->
+<!--            updateTokenStatus(token);-->
+<!--            showStatus('Token updated successfully!', 'success');-->
+<!--        });-->
+
+<!--        // Clear token-->
+<!--        clearTokenBtn.addEventListener('click', function() {-->
+<!--            tokenInput.value = '';-->
+<!--            tokenDisplay.textContent = 'No token provided';-->
+<!--            tokenPreview.textContent = '';-->
+<!--            updateTokenStatus('');-->
+<!--            showStatus('Token cleared', 'success');-->
+<!--        });-->
+
+<!--        // Payment process-->
+<!--        payButton.onclick = async function() {-->
+<!--            const userId = userIdInput.value;-->
+<!--            const cartGroupId = cartIdInput.value;-->
+<!--            const token = tokenInput.value.trim();-->
+<!--            const currency = "INR";-->
+
+<!--            if (!userId || !cartGroupId) {-->
+<!--                showStatus('Please enter both User ID and Cart Group ID', 'error');-->
+<!--                return;-->
+<!--            }-->
+
+<!--            if (!token) {-->
+<!--                showStatus('Please enter an authentication token', 'error');-->
+<!--                return;-->
+<!--            }-->
+
+<!--            // Show loading state-->
+<!--            const button = this;-->
+<!--            button.innerHTML = '<span class="loading"></span> Processing...';-->
+<!--            button.disabled = true;-->
+<!--            hideStatus();-->
+
+<!--            try {-->
+<!--                // Step 1: Create Razorpay Order for Cart Payment-->
+<!--                const res = await fetch(`http://localhost:8080/api/payment/create?cartId=${cartGroupId}&currency=${currency}`, {-->
+<!--                    method: 'POST',-->
+<!--                    headers: {-->
+<!--                        'Authorization': `Bearer ${token}`-->
+<!--                    }-->
+<!--                });-->
+
+<!--                if (!res.ok) throw new Error("Failed to create payment order");-->
+<!--                const data = await res.json();-->
+
+<!--                // Update amount display-->
+<!--                amountDisplay.textContent = `₹${(data.amount / 100).toFixed(2)}`;-->
+
+<!--                // Step 2: Initialize Razorpay Checkout-->
+<!--                const options = {-->
+<!--                    key: "rzp_test_7SEhinYJRzQIpS",-->
+<!--                    amount: data.amount,-->
+<!--                    currency: data.currency,-->
+<!--                    name: "Score App",-->
+<!--                    description: "Food Order Payment",-->
+<!--                    order_id: data.orderId,-->
+
+<!--                    handler: async function (response) {-->
+<!--                        console.log("Payment Response:", response);-->
+
+<!--                        try {-->
+<!--                            // Step 3: Verify Payment with Backend-->
+<!--                            const verifyRes = await fetch(`http://localhost:8080/api/payment/verify?cartId=${cartGroupId}`, {-->
+<!--                                method: 'POST',-->
+<!--                                headers: {-->
+<!--                                    'Content-Type': 'application/json',-->
+<!--                                    'Authorization': `Bearer ${token}`-->
+<!--                                },-->
+<!--                                body: JSON.stringify({-->
+<!--                                    razorpayOrderId: response.razorpay_order_id,-->
+<!--                                    razorpayPaymentId: response.razorpay_payment_id,-->
+<!--                                    razorpaySignature: response.razorpay_signature,-->
+<!--                                    userId: parseInt(userId),-->
+<!--                                    amount: data.amount-->
+<!--                                })-->
+<!--                            });-->
+
+<!--                            const verifyData = await verifyRes.text();-->
+<!--                            if (!verifyRes.ok) throw new Error(verifyData);-->
+
+<!--                            showStatus(`✅ Payment successful!<br>Order confirmed.`, 'success');-->
+<!--                        } catch (err) {-->
+<!--                            showStatus("❌ Payment verification failed: " + err.message, 'error');-->
+<!--                        }-->
+<!--                    },-->
+
+<!--                    prefill: {-->
+<!--                        name: "Ankit Yadav",-->
+<!--                        email: "ankityadav07022003@gmail.com",-->
+<!--                        contact: "9000000000"-->
+<!--                    },-->
+
+<!--                    theme: { color: "#3399cc" }-->
+<!--                };-->
+
+<!--                const rzp = new Razorpay(options);-->
+<!--                rzp.open();-->
+
+<!--            } catch (err) {-->
+<!--                showStatus("❌ Error: " + err.message, 'error');-->
+<!--            } finally {-->
+<!--                // Reset button state-->
+<!--                button.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M20 7H4C2.89543 7 2 7.89543 2 9V17C2 18.1046 2.89543 19 4 19H20C21.1046 19 22 18.1046 22 17V9C22 7.89543 21.1046 7 20 7Z" stroke="currentColor" stroke-width="2"/><path d="M2 10H22" stroke="currentColor" stroke-width="2"/><path d="M6 15H7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M10 15H14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg> Pay Now';-->
+<!--                button.disabled = false;-->
+<!--            }-->
+<!--        };-->
+
+<!--        function showStatus(message, type) {-->
+<!--            statusMessage.innerHTML = message;-->
+<!--            statusMessage.className = `status-message ${type}`;-->
+<!--            statusMessage.style.display = 'block';-->
+
+<!--            // Auto-hide success messages after 5 seconds-->
+<!--            if (type === 'success') {-->
+<!--                setTimeout(() => {-->
+<!--                    hideStatus();-->
+<!--                }, 5000);-->
+<!--            }-->
+<!--        }-->
+
+<!--        function hideStatus() {-->
+<!--            statusMessage.style.display = 'none';-->
+<!--        }-->
+
+<!--        // Initialize display and token status-->
+<!--        updateDisplay();-->
+<!--        updateTokenStatus(tokenInput.value.trim());-->
+<!--        tokenPreview.textContent = tokenInput.value.substring(0, 100) +-->
+<!--            (tokenInput.value.length > 100 ? '...' : '');-->
+<!--    });-->
+<!--</script>-->
+<!--</body>-->
+<!--</html>-->
+
+
+
+
+
+
+
+
+
+
+<!--<button id="payButton" data-user-id="5" data-slot-id="1">Pay Now</button>-->
+
+<!--<script src="https://checkout.razorpay.com/v1/checkout.js"></script>-->
+<!--<script>-->
+<!--    document.getElementById("payButton").onclick = async function() {-->
+<!--        const button = this;-->
+<!--        const userId = button.getAttribute('data-user-id');-->
+<!--        const slotId = button.getAttribute('data-slot-id');-->
+
+<!--        try {-->
+<!--            // Step 1️⃣ Create Razorpay Order for Slot Booking-->
+<!--            const response = await fetch(`http://localhost:8080/api/payment/create/slot?slotId=${slotId}`, {-->
+<!--                method: 'POST'-->
+<!--            });-->
+
+<!--            if (!response.ok) throw new Error("Failed to create payment order");-->
+<!--            const orderData = await response.json();-->
+
+<!--            // Step 2️⃣ Initialize Razorpay Checkout-->
+<!--            const options = {-->
+<!--                key: "rzp_test_7SEhinYJRzQIpS", // Replace with your Razorpay Test Key-->
+<!--                amount: orderData.amount, // amount in paise (e.g., 50000 = ₹500)-->
+<!--                currency: orderData.currency,-->
+<!--                name: "Score App",-->
+<!--                description: "Slot Booking",-->
+<!--                order_id: orderData.orderId, // Match the key from backend's createOrderForSlot-->
+
+<!--                handler: async function (paymentResponse) {-->
+<!--                    try {-->
+<!--                        // Step 3️⃣ Confirm Payment & Booking with Backend-->
+<!--                        const confirmResponse = await fetch(`http://localhost:8080/api/payment/verify/slot?userId=${userId}&slotId=${slotId}&orderId=${paymentResponse.razorpay_order_id}&paymentId=${paymentResponse.razorpay_payment_id}&signature=${paymentResponse.razorpay_signature}`, {-->
+<!--                            method: 'POST'-->
+<!--                        });-->
+
+<!--                        if (!confirmResponse.ok) throw new Error("Booking confirmation failed");-->
+<!--                        const result = await confirmResponse.json();-->
+
+<!--                        alert(`✅ Booking confirmed!\nBooking ID: ${result.booking.id}\nSlot ID: ${result.booking.slotId}`);-->
+<!--                    } catch (err) {-->
+<!--                        alert("❌ Booking error: " + err.message);-->
+<!--                    }-->
+<!--                },-->
+
+<!--                theme: { color: "#3399cc" }-->
+<!--            };-->
+
+<!--            const rzp = new Razorpay(options);-->
+<!--            rzp.open();-->
+<!--        } catch (err) {-->
+<!--            alert("❌ Error: " + err.message);-->
+<!--        }-->
+<!--    };-->
+<!--</script>-->
+
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Score App - Food Order Payment</title>
+    <title>Score App - Slot Booking Payment</title>
     <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
     <style>
         * {
@@ -305,13 +1017,13 @@
 <div class="container">
     <div class="header">
         <h1>Score App</h1>
-        <p>Complete your food order with secure payment</p>
+        <p>Complete your slot booking with secure payment</p>
     </div>
 
     <div class="content">
         <div class="payment-info">
             <h3>Payment Information</h3>
-            <p>Enter your User ID, Cart ID, and Authentication Token to proceed with payment.</p>
+            <p>Enter your User ID, Slot ID, and Authentication Token to proceed with slot booking payment.</p>
         </div>
 
         <div class="input-section">
@@ -321,8 +1033,8 @@
             </div>
 
             <div class="input-group">
-                <label for="cartIdInput">Cart Group ID</label>
-                <input type="text" id="cartIdInput" placeholder="Enter Cart Group ID" value="1">
+                <label for="slotIdInput">Slot ID</label>
+                <input type="text" id="slotIdInput" placeholder="Enter Slot ID" value="1">
             </div>
 
             <div class="token-input-section">
@@ -366,14 +1078,14 @@
         </div>
 
         <div class="booking-details">
-            <h3 style="margin-bottom: 15px;">Order Summary</h3>
+            <h3 style="margin-bottom: 15px;">Booking Summary</h3>
             <div class="detail-item">
                 <span class="detail-label">User ID:</span>
                 <span class="detail-value" id="userIdDisplay">5</span>
             </div>
             <div class="detail-item">
-                <span class="detail-label">Cart Group ID:</span>
-                <span class="detail-value" id="cartIdDisplay">1</span>
+                <span class="detail-label">Slot ID:</span>
+                <span class="detail-value" id="slotIdDisplay">1</span>
             </div>
             <div class="detail-item">
                 <span class="detail-label">Currency:</span>
@@ -392,12 +1104,10 @@
         <div class="payment-section">
             <button class="btn btn-pay" id="payButton">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M20 7H4C2.89543 7 2 7.89543 2 9V17C2 18.1046 2.89543 19 4 19H20C21.1046 19 22 18.1046 22 17V9C22 7.89543 21.1046 7 20 7Z" stroke="currentColor" stroke-width="2"/>
-                    <path d="M2 10H22" stroke="currentColor" stroke-width="2"/>
-                    <path d="M6 15H7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                    <path d="M10 15H14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    <path d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM12 20C7.59 20 4 16.41 4 12C4 7.59 7.59 4 12 4C16.41 4 20 7.59 20 12C20 16.41 16.41 20 12 20Z" stroke="currentColor" stroke-width="2"/>
+                    <path d="M12 6V12L16 14" stroke="currentColor" stroke-width="2"/>
                 </svg>
-                Pay Now
+                Book Slot Now
             </button>
 
             <div id="statusMessage" class="status-message"></div>
@@ -420,9 +1130,9 @@
         const tokenPreview = document.getElementById('tokenPreview');
         const statusMessage = document.getElementById('statusMessage');
         const userIdInput = document.getElementById('userIdInput');
-        const cartIdInput = document.getElementById('cartIdInput');
+        const slotIdInput = document.getElementById('slotIdInput');
         const userIdDisplay = document.getElementById('userIdDisplay');
-        const cartIdDisplay = document.getElementById('cartIdDisplay');
+        const slotIdDisplay = document.getElementById('slotIdDisplay');
         const amountDisplay = document.getElementById('amountDisplay');
         const tokenStatusDisplay = document.getElementById('tokenStatusDisplay');
 
@@ -444,11 +1154,11 @@
 
         // Update displayed values when inputs change
         userIdInput.addEventListener('input', updateDisplay);
-        cartIdInput.addEventListener('input', updateDisplay);
+        slotIdInput.addEventListener('input', updateDisplay);
 
         function updateDisplay() {
             userIdDisplay.textContent = userIdInput.value || '-';
-            cartIdDisplay.textContent = cartIdInput.value || '-';
+            slotIdDisplay.textContent = slotIdInput.value || '-';
         }
 
         function updateTokenStatus(token) {
@@ -525,12 +1235,11 @@
         // Payment process
         payButton.onclick = async function() {
             const userId = userIdInput.value;
-            const cartGroupId = cartIdInput.value;
+            const slotId = slotIdInput.value;
             const token = tokenInput.value.trim();
-            const currency = "INR";
 
-            if (!userId || !cartGroupId) {
-                showStatus('Please enter both User ID and Cart Group ID', 'error');
+            if (!userId || !slotId) {
+                showStatus('Please enter both User ID and Slot ID', 'error');
                 return;
             }
 
@@ -546,8 +1255,8 @@
             hideStatus();
 
             try {
-                // Step 1: Create Razorpay Order for Cart Payment
-                const res = await fetch(`http://localhost:8080/api/payment/create?cartId=${cartGroupId}&currency=${currency}`, {
+                // Step 1: Create Razorpay Order for Slot Booking
+                const res = await fetch(`http://localhost:8080/api/payment/create/slot?slotId=${slotId}`, {
                     method: 'POST',
                     headers: {
                         'Authorization': `Bearer ${token}`
@@ -566,7 +1275,7 @@
                     amount: data.amount,
                     currency: data.currency,
                     name: "Score App",
-                    description: "Food Order Payment",
+                    description: "Slot Booking",
                     order_id: data.orderId,
 
                     handler: async function (response) {
@@ -574,27 +1283,19 @@
 
                         try {
                             // Step 3: Verify Payment with Backend
-                            const verifyRes = await fetch(`http://localhost:8080/api/payment/verify?cartId=${cartGroupId}`, {
+                            const verifyRes = await fetch(`http://localhost:8080/api/payment/verify/slot?userId=${userId}&slotId=${slotId}&orderId=${response.razorpay_order_id}&paymentId=${response.razorpay_payment_id}&signature=${response.razorpay_signature}`, {
                                 method: 'POST',
                                 headers: {
-                                    'Content-Type': 'application/json',
                                     'Authorization': `Bearer ${token}`
-                                },
-                                body: JSON.stringify({
-                                    razorpayOrderId: response.razorpay_order_id,
-                                    razorpayPaymentId: response.razorpay_payment_id,
-                                    razorpaySignature: response.razorpay_signature,
-                                    userId: parseInt(userId),
-                                    amount: data.amount
-                                })
+                                }
                             });
 
-                            const verifyData = await verifyRes.text();
-                            if (!verifyRes.ok) throw new Error(verifyData);
+                            if (!verifyRes.ok) throw new Error("Booking confirmation failed");
+                            const result = await verifyRes.json();
 
-                            showStatus(`✅ Payment successful!<br>Order confirmed.`, 'success');
+                            showStatus(`✅ Booking confirmed!<br>Booking ID: ${result.booking.id}<br>Slot ID: ${result.booking.slotId}`, 'success');
                         } catch (err) {
-                            showStatus("❌ Payment verification failed: " + err.message, 'error');
+                            showStatus("❌ Booking error: " + err.message, 'error');
                         }
                     },
 
@@ -614,7 +1315,7 @@
                 showStatus("❌ Error: " + err.message, 'error');
             } finally {
                 // Reset button state
-                button.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M20 7H4C2.89543 7 2 7.89543 2 9V17C2 18.1046 2.89543 19 4 19H20C21.1046 19 22 18.1046 22 17V9C22 7.89543 21.1046 7 20 7Z" stroke="currentColor" stroke-width="2"/><path d="M2 10H22" stroke="currentColor" stroke-width="2"/><path d="M6 15H7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M10 15H14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg> Pay Now';
+                button.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM12 20C7.59 20 4 16.41 4 12C4 7.59 7.59 4 12 4C16.41 4 20 7.59 20 12C20 16.41 16.41 20 12 20Z" stroke="currentColor" stroke-width="2"/><path d="M12 6V12L16 14" stroke="currentColor" stroke-width="2"/></svg> Book Slot Now';
                 button.disabled = false;
             }
         };
@@ -645,56 +1346,3 @@
 </script>
 </body>
 </html>
-<!--<button id="payButton" data-user-id="5" data-slot-id="1">Pay Now</button>-->
-
-<!--<script src="https://checkout.razorpay.com/v1/checkout.js"></script>-->
-<!--<script>-->
-<!--    document.getElementById("payButton").onclick = async function() {-->
-<!--        const button = this;-->
-<!--        const userId = button.getAttribute('data-user-id');-->
-<!--        const slotId = button.getAttribute('data-slot-id');-->
-
-<!--        try {-->
-<!--            // Step 1️⃣ Create Razorpay Order for Slot Booking-->
-<!--            const response = await fetch(`http://localhost:8080/api/payment/create/slot?slotId=${slotId}`, {-->
-<!--                method: 'POST'-->
-<!--            });-->
-
-<!--            if (!response.ok) throw new Error("Failed to create payment order");-->
-<!--            const orderData = await response.json();-->
-
-<!--            // Step 2️⃣ Initialize Razorpay Checkout-->
-<!--            const options = {-->
-<!--                key: "rzp_test_7SEhinYJRzQIpS", // Replace with your Razorpay Test Key-->
-<!--                amount: orderData.amount, // amount in paise (e.g., 50000 = ₹500)-->
-<!--                currency: orderData.currency,-->
-<!--                name: "Score App",-->
-<!--                description: "Slot Booking",-->
-<!--                order_id: orderData.orderId, // Match the key from backend's createOrderForSlot-->
-
-<!--                handler: async function (paymentResponse) {-->
-<!--                    try {-->
-<!--                        // Step 3️⃣ Confirm Payment & Booking with Backend-->
-<!--                        const confirmResponse = await fetch(`http://localhost:8080/api/payment/verify/slot?userId=${userId}&slotId=${slotId}&orderId=${paymentResponse.razorpay_order_id}&paymentId=${paymentResponse.razorpay_payment_id}&signature=${paymentResponse.razorpay_signature}`, {-->
-<!--                            method: 'POST'-->
-<!--                        });-->
-
-<!--                        if (!confirmResponse.ok) throw new Error("Booking confirmation failed");-->
-<!--                        const result = await confirmResponse.json();-->
-
-<!--                        alert(`✅ Booking confirmed!\nBooking ID: ${result.booking.id}\nSlot ID: ${result.booking.slotId}`);-->
-<!--                    } catch (err) {-->
-<!--                        alert("❌ Booking error: " + err.message);-->
-<!--                    }-->
-<!--                },-->
-
-<!--                theme: { color: "#3399cc" }-->
-<!--            };-->
-
-<!--            const rzp = new Razorpay(options);-->
-<!--            rzp.open();-->
-<!--        } catch (err) {-->
-<!--            alert("❌ Error: " + err.message);-->
-<!--        }-->
-<!--    };-->
-<!--</script>-->

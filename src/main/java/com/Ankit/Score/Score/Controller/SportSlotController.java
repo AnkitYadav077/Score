@@ -18,7 +18,7 @@ public class SportSlotController {
 
     // Create slot - Only Admin can create slots
     @PostMapping
-    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'SUB_ADMIN')")
+    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'SUB_ADMIN', 'USER')")
     public ResponseEntity<SportSlotDto> createSlot(@RequestBody SportSlotDto dto) {
         return ResponseEntity.ok(sportSlotService.createSlot(dto));
     }
