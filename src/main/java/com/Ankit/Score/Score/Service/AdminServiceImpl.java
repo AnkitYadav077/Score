@@ -46,6 +46,11 @@ public class AdminServiceImpl implements AdminService {
             admin.setPassword(encodedPassword);
         }
 
+        // ✅ Role explicitly set karo
+        if (admin.getRole() == null) {
+            admin.setRole("SUPER_ADMIN");
+        }
+
         Admin savedAdmin = adminRepo.save(admin);
         logActivity(savedAdmin.getId(), "CREATE_ADMIN", "Admin account created");
         return modelMapper.map(savedAdmin, AdminDto.class);
@@ -70,6 +75,7 @@ public class AdminServiceImpl implements AdminService {
         subAdmin.setPassword(encodedPassword);
 
         subAdmin.setParentAdmin(parentAdmin);
+        subAdmin.setRole("SUB_ADMIN"); // ✅ Explicitly set role
 
         Admin savedSubAdmin = adminRepo.save(subAdmin);
         logActivity(parentAdminId, "CREATE_SUB_ADMIN", "Created sub-admin: " + request.getName());
@@ -90,9 +96,25 @@ public class AdminServiceImpl implements AdminService {
             admin.setPassword(encodedPassword);
         }
 
+        // ✅ Role bhi update karo agar provide kiya gaya ho
+        if (adminDto.getRole() != null && !adminDto.getRole().isEmpty()) {
+            admin.setRole(adminDto.getRole());
+        }
+
         Admin updatedAdmin = adminRepo.save(admin);
         logActivity(id, "UPDATE_ADMIN", "Admin details updated");
         return modelMapper.map(updatedAdmin, AdminDto.class);
+    }
+
+    // ✅ Custom method for getting role with logic
+    public String getCalculatedRole(Long adminId) {
+        Admin admin = adminRepo.findById(adminId)
+                .orElseThrow(() -> new ResourceNotFoundException("Admin", "id", adminId));
+
+        if (admin.getRole() == null) {
+            return admin.getParentAdmin() == null ? "SUPER_ADMIN" : "SUB_ADMIN";
+        }
+        return admin.getRole();
     }
 
     @Override
