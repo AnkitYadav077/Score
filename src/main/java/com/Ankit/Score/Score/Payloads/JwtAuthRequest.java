@@ -13,3 +13,4 @@ public class JwtAuthRequest {
     private String email;
     private String password;
 }
+

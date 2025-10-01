@@ -24,7 +24,7 @@ public class Admin {
     @Column(nullable = false)
     private String password;
 
-    @Column(name = "role") // Explicitly define column
+    @Column(name = "role")
     private String role;
 
     @ManyToOne(fetch = FetchType.LAZY)

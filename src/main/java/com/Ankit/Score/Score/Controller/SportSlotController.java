@@ -2,6 +2,7 @@ package com.Ankit.Score.Score.Controller;
 
 import com.Ankit.Score.Score.Payloads.SportSlotDto;
 import com.Ankit.Score.Score.Service.SportSlotService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -11,10 +12,11 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/slots")
+@RequiredArgsConstructor
 public class SportSlotController {
 
-    @Autowired
-    private SportSlotService sportSlotService;
+
+    private final SportSlotService sportSlotService;
 
     // Create slot - Only Admin can create slots
     @PostMapping

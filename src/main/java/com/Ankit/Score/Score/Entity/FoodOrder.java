@@ -4,7 +4,6 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
-import java.time.LocalTime;
 
 @Entity
 @Getter
@@ -20,7 +19,6 @@ public class FoodOrder {
 
     private int quantity;
 
-
     private String paymentStatus;  // PENDING, PAID, REFUNDED
 
     private String status;         // PENDING, CONFIRMED, CANCELLED, etc.
@@ -28,6 +26,7 @@ public class FoodOrder {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
     private User user;
+
     private String userName;
     private String userMobileNo;
 
@@ -36,5 +35,4 @@ public class FoodOrder {
     private FoodItem foodItem;
 
     private LocalDateTime orderDateTime;
-
 }

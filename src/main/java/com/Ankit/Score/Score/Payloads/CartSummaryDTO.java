@@ -1,7 +1,6 @@
 package com.Ankit.Score.Score.Payloads;
 
 import lombok.Data;
-
 import java.util.List;
 
 @Data

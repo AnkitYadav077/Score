@@ -7,6 +7,7 @@ import com.Ankit.Score.Score.Payloads.UserDto;
 import com.Ankit.Score.Score.Repo.BookingRepo;
 import com.Ankit.Score.Score.Repo.FoodOrderRepo;
 import com.Ankit.Score.Score.Repo.UserRepo;
+import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -18,6 +19,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
 
     private final UserRepo userRepo;
@@ -25,16 +27,6 @@ public class UserServiceImpl implements UserService {
     private final FoodOrderRepo foodOrderRepo;
     private final ModelMapper modelMapper;
 
-    @Autowired
-    public UserServiceImpl(UserRepo userRepo,
-                           BookingRepo bookingRepo,
-                           FoodOrderRepo foodOrderRepo,
-                           ModelMapper modelMapper) {
-        this.userRepo = userRepo;
-        this.bookingRepo = bookingRepo;
-        this.foodOrderRepo = foodOrderRepo;
-        this.modelMapper = modelMapper;
-    }
 
     @Override
     public UserDto createUser(UserDto userDto) {

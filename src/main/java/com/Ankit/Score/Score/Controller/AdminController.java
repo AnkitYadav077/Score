@@ -5,6 +5,7 @@ import com.Ankit.Score.Score.Payloads.AdminActivityDto;
 import com.Ankit.Score.Score.Payloads.CreateSubAdminRequest;
 import com.Ankit.Score.Score.Service.AdminService;
 import com.Ankit.Score.Score.Service.AdminActivityService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -14,16 +15,12 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/admin")
+@RequiredArgsConstructor
 public class AdminController {
 
     private final AdminService adminService;
     private final AdminActivityService adminActivityService;
 
-    @Autowired
-    public AdminController(AdminService adminService, AdminActivityService adminActivityService) {
-        this.adminService = adminService;
-        this.adminActivityService = adminActivityService;
-    }
 
     // Create new admin (POST /admin) - Only Super Admin can create other admins
     @PostMapping

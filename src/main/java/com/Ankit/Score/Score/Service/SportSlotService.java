@@ -1,7 +1,6 @@
 package com.Ankit.Score.Score.Service;
 
 import com.Ankit.Score.Score.Payloads.SportSlotDto;
-
 import java.util.List;
 
 public interface SportSlotService {

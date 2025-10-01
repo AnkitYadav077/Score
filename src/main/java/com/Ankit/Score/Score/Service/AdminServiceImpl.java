@@ -7,6 +7,7 @@ import com.Ankit.Score.Score.Payloads.AdminDto;
 import com.Ankit.Score.Score.Payloads.CreateSubAdminRequest;
 import com.Ankit.Score.Score.Repo.AdminActivityRepo;
 import com.Ankit.Score.Score.Repo.AdminRepo;
+import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -18,6 +19,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 public class AdminServiceImpl implements AdminService {
 
     private final AdminRepo adminRepo;
@@ -25,16 +27,6 @@ public class AdminServiceImpl implements AdminService {
     private final ModelMapper modelMapper;
     private final PasswordEncoder passwordEncoder;
 
-    @Autowired
-    public AdminServiceImpl(AdminRepo adminRepo,
-                            AdminActivityRepo adminActivityRepo,
-                            ModelMapper modelMapper,
-                            PasswordEncoder passwordEncoder) {
-        this.adminRepo = adminRepo;
-        this.adminActivityRepo = adminActivityRepo;
-        this.modelMapper = modelMapper;
-        this.passwordEncoder = passwordEncoder;
-    }
 
     @Override
     public AdminDto createAdmin(AdminDto adminDto) {

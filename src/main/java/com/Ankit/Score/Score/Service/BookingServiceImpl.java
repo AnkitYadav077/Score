@@ -9,6 +9,7 @@ import com.Ankit.Score.Score.Repo.BookingRepo;
 import com.Ankit.Score.Score.Repo.CategoryRepo;
 import com.Ankit.Score.Score.Repo.SportSlotRepo;
 import com.Ankit.Score.Score.Repo.UserRepo;
+import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -19,29 +20,15 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 public class BookingServiceImpl implements BookingService {
 
     private final BookingRepo bookingRepo;
     private final UserRepo userRepo;
     private final SportSlotRepo slotRepo;
-    private final PaymentService paymentService;
+    private final PaymentServiceImpl paymentService;
     private final ModelMapper modelMapper;
-
-    @Autowired
-    private CategoryRepo categoryRepository;
-
-
-
-
-    @Autowired
-    public BookingServiceImpl(BookingRepo bookingRepo, UserRepo userRepo, SportSlotRepo slotRepo,
-                              PaymentService paymentService, ModelMapper modelMapper) {
-        this.bookingRepo = bookingRepo;
-        this.userRepo = userRepo;
-        this.slotRepo = slotRepo;
-        this.paymentService = paymentService;
-        this.modelMapper = modelMapper;
-    }
+    private final CategoryRepo categoryRepository;
 
     @Override
     public BookingDto createBookingWithPayment(Long userId, Long slotId, String orderId, String paymentId, String signature) throws Exception {
@@ -101,6 +88,18 @@ public class BookingServiceImpl implements BookingService {
                 .collect(Collectors.toList());
     }
 
+    @Override
+    public List<BookingDto> getBookingsByCategoryAndDate(Long categoryId, LocalDate bookingDate) {
+        Category category = categoryRepository.findById(categoryId)
+                .orElseThrow(() -> new RuntimeException("Category not found"));
+
+        List<Booking> bookings = bookingRepo.findBySportSlotCategoryAndBookingDate(category, bookingDate);
+
+        return bookings.stream()
+                .map(this::mapToDto)
+                .collect(Collectors.toList());
+    }
+
     private BookingDto mapToDto(Booking entity) {
         return BookingDto.builder()
                 .bookingId(entity.getBookingId())
@@ -116,18 +115,4 @@ public class BookingServiceImpl implements BookingService {
                 .totalPrice(entity.getPrice())
                 .build();
     }
-
-
-    @Override
-    public List<BookingDto> getBookingsByCategoryAndDate(Long categoryId, LocalDate bookingDate) {
-        Category category = categoryRepository.findById(categoryId)
-                .orElseThrow(() -> new RuntimeException("Category not found"));
-
-        List<Booking> bookings = bookingRepo.findBySportSlotCategoryAndBookingDate(category, bookingDate);
-
-        return bookings.stream()
-                .map(this::mapToDto)
-                .collect(Collectors.toList());
-    }
-
 }

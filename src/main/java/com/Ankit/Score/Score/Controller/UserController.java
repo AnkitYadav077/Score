@@ -2,6 +2,7 @@ package com.Ankit.Score.Score.Controller;
 
 import com.Ankit.Score.Score.Payloads.UserDto;
 import com.Ankit.Score.Score.Service.UserService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -12,14 +13,11 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/user")
+@RequiredArgsConstructor
 public class UserController {
 
     private final UserService userService;
 
-    @Autowired
-    public UserController(UserService userService) {
-        this.userService = userService;
-    }
 
     // Create user - Public access (for registration)
     @PostMapping

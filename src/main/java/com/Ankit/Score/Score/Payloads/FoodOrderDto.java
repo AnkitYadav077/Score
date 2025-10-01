@@ -1,9 +1,7 @@
 package com.Ankit.Score.Score.Payloads;
 
 import lombok.*;
-
 import java.time.LocalDateTime;
-import java.time.LocalTime;
 
 @Getter
 @Setter
@@ -22,7 +20,6 @@ public class FoodOrderDto {
     private String foodName;
 
     private int quantity;
-    private LocalTime orderAt;
 
     private String paymentStatus;
     private String status;

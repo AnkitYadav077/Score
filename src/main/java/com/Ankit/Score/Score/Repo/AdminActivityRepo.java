@@ -7,6 +7,7 @@ import org.springframework.data.repository.query.Param;
 import java.util.List;
 
 public interface AdminActivityRepo extends JpaRepository<AdminActivity, Long> {
+
     List<AdminActivity> findByRootAdminIdOrderByTimestampDesc(Long rootAdminId);
 
     @Query("SELECT a FROM AdminActivity a WHERE a.rootAdmin.id = :rootAdminId " +

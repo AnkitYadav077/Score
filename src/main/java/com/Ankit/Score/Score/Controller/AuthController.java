@@ -6,6 +6,7 @@ import com.Ankit.Score.Score.Payloads.JwtAuthRequest;
 import com.Ankit.Score.Score.Repo.AdminRepo;
 import com.Ankit.Score.Score.Security.JwtHelper;
 import com.Ankit.Score.Score.Service.CustomUserDetailsService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -22,6 +23,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/auth")
+@RequiredArgsConstructor
 public class AuthController {
 
     private final AuthenticationManager authenticationManager;
@@ -30,17 +32,7 @@ public class AuthController {
     private final AdminRepo adminRepo;
     private final PasswordEncoder passwordEncoder;
 
-    public AuthController(AuthenticationManager authenticationManager,
-                          CustomUserDetailsService userDetailsService,
-                          JwtHelper jwtHelper,
-                          AdminRepo adminRepo,
-                          PasswordEncoder passwordEncoder) {
-        this.authenticationManager = authenticationManager;
-        this.userDetailsService = userDetailsService;
-        this.jwtHelper = jwtHelper;
-        this.adminRepo = adminRepo;
-        this.passwordEncoder = passwordEncoder;
-    }
+
 
     @PostMapping("/login")
     public ResponseEntity<Map<String, String>> createToken(@RequestBody JwtAuthRequest request) throws Exception {
@@ -81,7 +73,6 @@ public class AuthController {
         // Encode password before saving
         String encodedPassword = passwordEncoder.encode(request.getPassword());
         admin.setPassword(encodedPassword);
-
         admin.setParentAdmin(null);
 
         Admin savedAdmin = adminRepo.save(admin);

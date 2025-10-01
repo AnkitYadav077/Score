@@ -6,14 +6,13 @@ import lombok.*;
 import java.time.LocalDate;
 import java.time.LocalTime;
 
-// package: com.Ankit.Score.Score.Entity
-
 @Entity
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
 public class SportSlot {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long slotId;
@@ -28,7 +27,5 @@ public class SportSlot {
     private Category category;
 
     private Integer totalPrice;
-
     // ... other fields
 }
-

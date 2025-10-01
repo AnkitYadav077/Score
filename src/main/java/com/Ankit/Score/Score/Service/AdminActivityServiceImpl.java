@@ -3,6 +3,7 @@ package com.Ankit.Score.Score.Service;
 import com.Ankit.Score.Score.Entity.AdminActivity;
 import com.Ankit.Score.Score.Payloads.AdminActivityDto;
 import com.Ankit.Score.Score.Repo.AdminActivityRepo;
+import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -11,16 +12,12 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 public class AdminActivityServiceImpl implements AdminActivityService {
 
     private final AdminActivityRepo adminActivityRepo;
     private final ModelMapper modelMapper;
 
-    @Autowired
-    public AdminActivityServiceImpl(AdminActivityRepo adminActivityRepo, ModelMapper modelMapper) {
-        this.adminActivityRepo = adminActivityRepo;
-        this.modelMapper = modelMapper;
-    }
 
     @Override
     public List<AdminActivityDto> getActivitiesByRootAdmin(Long rootAdminId) {

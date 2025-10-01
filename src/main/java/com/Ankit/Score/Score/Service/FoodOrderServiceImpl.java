@@ -7,6 +7,7 @@ import com.Ankit.Score.Score.Repo.CartRepo;
 import com.Ankit.Score.Score.Repo.FoodOrderRepo;
 import com.Ankit.Score.Score.Repo.PaymentRepo;
 import com.Ankit.Score.Score.Exceptions.ResourceNotFoundException;
+import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -17,19 +18,14 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 public class FoodOrderServiceImpl implements FoodOrderService {
 
-    @Autowired
-    private CartRepo cartRepo;
 
-    @Autowired
-    private FoodOrderRepo foodOrderRepo;
-
-    @Autowired
-    private PaymentRepo paymentRepo;
-
-    @Autowired
-    private ModelMapper modelMapper;
+    private final CartRepo cartRepo;
+    private final FoodOrderRepo foodOrderRepo;
+    private final PaymentRepo paymentRepo;
+    private final ModelMapper modelMapper;
 
     @Override
     @Transactional

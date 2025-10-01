@@ -1,17 +1,21 @@
 package com.Ankit.Score.Score.Config;
 
 import com.razorpay.RazorpayClient;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
 public class RazorpayConfig {
 
-    private static final String KEY_ID = "rzp_test_7SEhinYJRzQIpS";
-    private static final String KEY_SECRET = "nY8tqv7s7OiZ1KmoxToHwN7D";
+    @Value("${razorpay.key_id}")
+    private String keyId;
+
+    @Value("${razorpay.key_secret}")
+    private String keySecret;
 
     @Bean
     public RazorpayClient razorpayClient() throws Exception {
-        return new RazorpayClient(KEY_ID, KEY_SECRET);
+        return new RazorpayClient(keyId, keySecret);
     }
 }

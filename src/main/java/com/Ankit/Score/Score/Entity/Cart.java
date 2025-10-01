@@ -31,4 +31,3 @@ public class Cart {
 
     private Boolean isPaid;
 }
-

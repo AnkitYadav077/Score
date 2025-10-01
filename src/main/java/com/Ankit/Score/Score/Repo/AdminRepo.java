@@ -18,4 +18,3 @@ public interface AdminRepo extends JpaRepository<Admin, Long> {
     @Query("SELECT a FROM Admin a WHERE a.parentAdmin.id = :adminId OR a.id = :adminId")
     List<Admin> findAllByAdminHierarchy(@Param("adminId") Long adminId);
 }
-

@@ -32,9 +32,8 @@ public class Payment {
     @Column(nullable = false, length = 50)
     private String paymentStatus;  // "SUCCESS", "FAILED", etc.
 
-    @Column(nullable = true) // Optional, as per your design
+    @Column(nullable = true)
     private String transactionId; // Razorpay payment id
-
 
     private LocalDateTime paymentDateTime;
 }

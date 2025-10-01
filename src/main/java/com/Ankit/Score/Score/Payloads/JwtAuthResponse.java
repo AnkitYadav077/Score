@@ -15,3 +15,4 @@ public class JwtAuthResponse {
     private String email;
     private String role;
 }
+

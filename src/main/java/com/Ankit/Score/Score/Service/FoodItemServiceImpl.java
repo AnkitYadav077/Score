@@ -6,6 +6,7 @@ import com.Ankit.Score.Score.Exceptions.ResourceNotFoundException;
 import com.Ankit.Score.Score.Payloads.FoodItemDto;
 import com.Ankit.Score.Score.Repo.CategoryRepo;
 import com.Ankit.Score.Score.Repo.FoodItemRepo;
+import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
@@ -13,17 +14,13 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 public class FoodItemServiceImpl implements FoodItemService {
 
     private final FoodItemRepo foodItemRepo;
     private final CategoryRepo categoryRepo;
     private final ModelMapper modelMapper;
 
-    public FoodItemServiceImpl(FoodItemRepo foodItemRepo, CategoryRepo categoryRepo, ModelMapper modelMapper) {
-        this.foodItemRepo = foodItemRepo;
-        this.categoryRepo = categoryRepo;
-        this.modelMapper = modelMapper;
-    }
 
     @Override
     public FoodItemDto createFoodItem(FoodItemDto foodItemDto) {

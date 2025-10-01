@@ -1,7 +1,6 @@
 package com.Ankit.Score.Score.Payloads;
 
 import lombok.*;
-
 import java.time.LocalDateTime;
 
 @Getter

@@ -6,6 +6,7 @@ import com.Ankit.Score.Score.Exceptions.ResourceNotFoundException;
 import com.Ankit.Score.Score.Payloads.SportSlotDto;
 import com.Ankit.Score.Score.Repo.CategoryRepo;
 import com.Ankit.Score.Score.Repo.SportSlotRepo;
+import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -16,16 +17,13 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 public class SportSlotServiceImpl implements SportSlotService {
 
-    @Autowired
-    private SportSlotRepo sportSlotRepo;
 
-    @Autowired
-    private CategoryRepo categoryRepo;
-
-    @Autowired
-    private ModelMapper modelMapper;
+    private final SportSlotRepo sportSlotRepo;
+    private final CategoryRepo categoryRepo;
+    private final ModelMapper modelMapper;
 
     @Override
     public SportSlotDto createSlot(SportSlotDto dto) {
@@ -145,11 +143,12 @@ public class SportSlotServiceImpl implements SportSlotService {
         }
 
         if (!validStart || !validEndPrecision || durationMinutes < 60) {
-            throw new IllegalArgumentException("Invalid Slot Time: Start time must be at :00 or :30, end time precision must be zero seconds, and duration must be at least 1 hour.");
+            throw new IllegalArgumentException(
+                    "Invalid Slot Time: Start time must be at :00 or :30, " +
+                            "end time precision must be zero seconds, and duration must be at least 1 hour."
+            );
         }
     }
-
-
 
     private void checkSlotConflict(SportSlotDto dto) {
         List<SportSlot> existingSlots = sportSlotRepo.findByCategory_Id(dto.getCategory().getId());
@@ -212,8 +211,6 @@ public class SportSlotServiceImpl implements SportSlotService {
             throw new IllegalArgumentException("Slot timing overlaps with existing slot for the same category.");
         }
     }
-
-
 
     private Integer calculateTotalPrice(SportSlot slot) {
         LocalTime startTime = slot.getStartTime();
@@ -310,13 +307,6 @@ public class SportSlotServiceImpl implements SportSlotService {
                 (category.getBasePrice() * baseHours));
     }
 
-//    private int calculateSegmentPrice(LocalTime start, LocalTime end, Category category, LocalTime eveningStart) {
-//        // Simple calculation: if any part is after 7 PM, use evening price
-//        if (start.isAfter(eveningStart) || end.isAfter(eveningStart)) {
-//            return category.getEveningPrice();
-//        }
-//        return category.getBasePrice();
-//    }
     private SportSlot dtoToEntity(SportSlotDto dto) {
         SportSlot slot = modelMapper.map(dto, SportSlot.class);
         if (dto.getCategory() != null && dto.getCategory().getId() != null) {

@@ -5,6 +5,7 @@ import org.springframework.security.core.userdetails.User;
 
 import java.util.Collection;
 
+
 public class CustomUserDetails extends User {
     private final String userType;
     private final Long userId;

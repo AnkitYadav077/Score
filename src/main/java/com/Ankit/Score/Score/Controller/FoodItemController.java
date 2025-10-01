@@ -3,6 +3,7 @@ package com.Ankit.Score.Score.Controller;
 import com.Ankit.Score.Score.Payloads.FoodItemDto;
 import com.Ankit.Score.Score.Service.FoodItemService;
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -12,13 +13,11 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/menu")
+@RequiredArgsConstructor
 public class FoodItemController {
 
     private final FoodItemService foodItemService;
 
-    public FoodItemController(FoodItemService foodItemService) {
-        this.foodItemService = foodItemService;
-    }
 
     // Create food item - Only Admin can create food items
     @PostMapping

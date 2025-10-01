@@ -3,6 +3,7 @@ package com.Ankit.Score.Score.Controller;
 import com.Ankit.Score.Score.Payloads.BookingDto;
 import com.Ankit.Score.Score.Payloads.BookingPaymentRequest;
 import com.Ankit.Score.Score.Service.BookingService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
@@ -14,14 +15,11 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/bookings")
+@RequiredArgsConstructor
 public class BookingController {
 
     private final BookingService bookingService;
 
-    @Autowired
-    public BookingController(BookingService bookingService) {
-        this.bookingService = bookingService;
-    }
 
     // Get booking by ID - User can view their own booking, Admin can view any
     @GetMapping("/{id}")
@@ -42,7 +40,12 @@ public class BookingController {
     @PreAuthorize("hasRole('USER')")
     public ResponseEntity<BookingDto> createBookingWithPayment(@RequestBody BookingPaymentRequest request) throws Exception {
         BookingDto booking = bookingService.createBookingWithPayment(
-                request.getUserId(), request.getSlotId(), request.getOrderId(), request.getPaymentId(), request.getSignature());
+                request.getUserId(),
+                request.getSlotId(),
+                request.getOrderId(),
+                request.getPaymentId(),
+                request.getSignature()
+        );
         return ResponseEntity.ok(booking);
     }
 

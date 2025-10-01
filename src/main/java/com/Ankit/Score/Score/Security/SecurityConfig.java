@@ -2,6 +2,7 @@ package com.Ankit.Score.Score.Security;
 
 import com.Ankit.Score.Score.Service.CustomOAuth2UserService;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -27,25 +28,15 @@ import java.util.List;
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
+@RequiredArgsConstructor
 public class SecurityConfig {
 
     private final JwtAuthenticationEntryPoint point;
     private final JwtAuthenticationFilter filter;
     private final UserDetailsService userDetailsService;
     private final CustomOAuth2UserService customOAuth2UserService;
+    private final OAuth2LoginSuccessHandler oAuth2LoginSuccessHandler;
 
-
-    @Autowired
-    private OAuth2LoginSuccessHandler oAuth2LoginSuccessHandler;
-
-    public SecurityConfig(JwtAuthenticationEntryPoint point,
-                          JwtAuthenticationFilter filter,
-                          UserDetailsService userDetailsService, CustomOAuth2UserService customOAuth2UserService) {
-        this.point = point;
-        this.filter = filter;
-        this.userDetailsService = userDetailsService;
-        this.customOAuth2UserService = customOAuth2UserService;
-    }
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -56,8 +47,8 @@ public class SecurityConfig {
                         .requestMatchers("/admin/**").hasAnyRole("SUPER_ADMIN", "SUB_ADMIN")
                         .requestMatchers("/api/cart/**", "/api/orders/**", "/api/payment/**", "/api/bookings/**")
                         .hasRole("USER")
-                                .requestMatchers("/user").permitAll()
-                                .anyRequest().authenticated()
+                        .requestMatchers("/user").permitAll()
+                        .anyRequest().authenticated()
                 )
                 .oauth2Login(oauth2 -> oauth2
                         .userInfoEndpoint(userInfo -> userInfo

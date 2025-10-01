@@ -16,11 +16,17 @@ public class OAuth2Controller {
     @GetMapping("/user")
     public Map<String, Object> getUserInfo(@AuthenticationPrincipal CustomOAuth2User customOAuth2User) {
         Map<String, Object> userInfo = new HashMap<>();
+
         if (customOAuth2User != null) {
             userInfo.put("name", customOAuth2User.getUser().getName());
             userInfo.put("email", customOAuth2User.getUser().getEmail());
             userInfo.put("roles", customOAuth2User.getUser().getRoles());
+            userInfo.put("userId", customOAuth2User.getUser().getUserId());
+            userInfo.put("provider", customOAuth2User.getUser().getProvider());
+        } else {
+            userInfo.put("error", "User not authenticated");
         }
+
         return userInfo;
     }
 }

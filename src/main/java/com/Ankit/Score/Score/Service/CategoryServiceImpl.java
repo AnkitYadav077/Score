@@ -53,5 +53,4 @@ public class CategoryServiceImpl implements CategoryService {
 
         return modelMapper.map(saved, CategoryDto.class);
     }
-
 }

@@ -3,6 +3,7 @@ package com.Ankit.Score.Score.Service;
 import com.Ankit.Score.Score.Entity.User;
 import com.Ankit.Score.Score.Repo.UserRepo;
 import com.Ankit.Score.Score.Security.CustomOAuth2User;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
@@ -15,10 +16,11 @@ import java.util.Map;
 import java.util.Optional;
 
 @Service
+@RequiredArgsConstructor
 public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
-    @Autowired
-    private UserRepo userRepo;
+
+    private final UserRepo userRepo;
 
     @Override
     public OAuth2User loadUser(OAuth2UserRequest userRequest) throws OAuth2AuthenticationException {
@@ -77,7 +79,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
             user.getRoles().add("ROLE_USER");
 
             // Set mobileNo to null instead of empty string
-            user.setMobileNo(null); // ✅ CHANGE THIS LINE
+            user.setMobileNo(null);
 
             userRepo.save(user);
         }

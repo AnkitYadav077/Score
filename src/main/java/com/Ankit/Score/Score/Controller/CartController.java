@@ -3,25 +3,21 @@ package com.Ankit.Score.Score.Controller;
 import com.Ankit.Score.Score.Payloads.CartItemDTO;
 import com.Ankit.Score.Score.Payloads.CartSummaryDTO;
 import com.Ankit.Score.Score.Security.JwtHelper;
-import com.Ankit.Score.Score.Service.CartService;
-import com.Ankit.Score.Score.Service.CustomUserDetails;
+import com.Ankit.Score.Score.Service.CartServiceImpl;
 import jakarta.servlet.http.HttpServletRequest;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/cart")
+@RequiredArgsConstructor
 public class CartController {
 
-    @Autowired
-    private CartService cartService;
-
-    @Autowired
-    private JwtHelper jwtHelper;
+    private final CartServiceImpl cartService;
+    private final JwtHelper jwtHelper;
 
     // Add an item to the cart
     @PostMapping("/add")

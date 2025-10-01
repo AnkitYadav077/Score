@@ -4,6 +4,7 @@ import com.Ankit.Score.Score.Entity.Admin;
 import com.Ankit.Score.Score.Entity.User;
 import com.Ankit.Score.Score.Repo.AdminRepo;
 import com.Ankit.Score.Score.Repo.UserRepo;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -17,15 +18,12 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 public class CustomUserDetailsService implements UserDetailsService {
 
     private final AdminRepo adminRepo;
     private final UserRepo userRepo;
 
-    public CustomUserDetailsService(AdminRepo adminRepo, UserRepo userRepo) {
-        this.adminRepo = adminRepo;
-        this.userRepo = userRepo;
-    }
 
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
