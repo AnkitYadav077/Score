@@ -124,6 +124,15 @@ public class AdminServiceImpl implements AdminService {
                 .collect(Collectors.toList());
     }
 
+    // ✅ ADD THIS METHOD IMPLEMENTATION
+    @Override
+    public List<AdminDto> getAllAdmins() {
+        List<Admin> admins = adminRepo.findAll();
+        return admins.stream()
+                .map(admin -> modelMapper.map(admin, AdminDto.class))
+                .collect(Collectors.toList());
+    }
+
     @Override
     @Transactional
     public void logActivity(Long adminId, String action, String description) {

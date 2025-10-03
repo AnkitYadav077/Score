@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -62,37 +63,96 @@ public class UserServiceImpl implements UserService {
                 .collect(Collectors.toList());
     }
 
-//    @Override
-//    public List<OrderHistoryDto> getUserOrderHistory(Long userId) {
-//        // Fetch Slot Bookings
-//        List<OrderHistoryDto> slotOrders = bookingRepo.findByUser_UserId(userId).stream()
-//                .map(booking -> new OrderHistoryDto(
-//                        "SLOT",
-//                        booking.getBookingId(),
-//                        LocalDateTime.of(booking.getBookingDate(), booking.getSportSlot().getStartTime()),
-//                        "Slot on " + booking.getBookingDate() + " at " + booking.getSportSlot().getStartTime()
-//                ))
-//                .collect(Collectors.toList());
-//
-//        // Fetch Food Orders
-//        List<OrderHistoryDto> foodOrders = foodOrderRepo.findByUser_UserId(userId).stream()
-//                .map(order -> new OrderHistoryDto(
-//                        "FOOD",
-//                        order.getOrderId(),
-//                        LocalDateTime.of(LocalDateTime.now(), order.getOrderAt()),
-//                        "Ordered " + order.getQuantity() + " x " + order.getFoodItem().getName()
-//                                + ", Total: ₹" + (order.getQuantity() * order.getFoodItem().getPrice())
-//                ))
-//                .collect(Collectors.toList());
-//
-//        // Merge all orders
-//        List<OrderHistoryDto> allOrders = new ArrayList<>();
-//        allOrders.addAll(slotOrders);
-//        allOrders.addAll(foodOrders);
-//
-//        // Sort descending by order datetime (future first)
-//        return allOrders.stream()
-//                .sorted((o1, o2) -> o2.getOrderDateTime().compareTo(o1.getOrderDateTime()))
-//                .collect(Collectors.toList());
-//    }
+    @Override
+    public List<OrderHistoryDto> getUserOrderHistory(Long userId) {
+        // Verify user exists
+        User user = userRepo.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User", "id", userId));
+
+        // Fetch Slot Bookings
+        List<OrderHistoryDto> slotOrders = bookingRepo.findByUser_UserId(userId).stream()
+                .map(booking -> {
+                    String details = "Sports Slot Booking";
+                    String description = "Sports Facility Booking";
+                    Double amount = booking.getPrice() != null ? booking.getPrice() : 0.0;
+                    LocalDateTime orderDateTime = booking.getBookingStartTime() != null ?
+                            booking.getBookingStartTime() : LocalDateTime.now();
+
+                    // Build description with available information
+                    if (booking.getBookingDate() != null) {
+                        description = "Slot booked for " + booking.getBookingDate();
+                    }
+                    if (booking.getSportSlot() != null && booking.getSportSlot().getStartTime() != null) {
+                        description += " at " + booking.getSportSlot().getStartTime();
+                    }
+
+                    // Add category name if available
+                    if (booking.getSportSlot() != null && booking.getSportSlot().getCategory() != null) {
+                        details = booking.getSportSlot().getCategory().getName() + " Booking";
+                    }
+
+                    return new OrderHistoryDto(
+                            "SLOT",
+                            booking.getBookingId(),
+                            orderDateTime, // This will be converted to String in constructor
+                            details,
+                            description,
+                            amount
+                    );
+                })
+                .collect(Collectors.toList());
+
+        // Fetch Food Orders
+        List<OrderHistoryDto> foodOrders = foodOrderRepo.findByUser_UserId(userId).stream()
+                .map(order -> {
+                    String details = "Food Order";
+                    String description = "Food order";
+                    Double amount = 0.0;
+                    LocalDateTime orderDateTime = order.getOrderDateTime() != null ?
+                            order.getOrderDateTime() : LocalDateTime.now();
+
+                    // Build description with food item details
+                    if (order.getFoodItem() != null) {
+                        String foodName = order.getFoodItem().getName();
+                        double foodPrice = order.getFoodItem().getPrice();
+                        int quantity = order.getQuantity();
+                        amount = quantity * foodPrice;
+
+                        description = "Ordered " + quantity + " x " + foodName + ", Total: ₹" + amount;
+                        details = foodName + " (Qty: " + quantity + ")";
+                    }
+
+                    return new OrderHistoryDto(
+                            "FOOD",
+                            order.getOrderId(),
+                            orderDateTime, // This will be converted to String in constructor
+                            details,
+                            description,
+                            amount
+                    );
+                })
+                .collect(Collectors.toList());
+
+        // Merge all orders
+        List<OrderHistoryDto> allOrders = new ArrayList<>();
+        allOrders.addAll(slotOrders);
+        allOrders.addAll(foodOrders);
+
+        // Sort descending by order datetime (most recent first)
+        // Since orderDateTime is now String, we need to parse it for sorting
+        return allOrders.stream()
+                .sorted((o1, o2) -> {
+                    try {
+                        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+                        LocalDateTime date1 = o1.getOrderDateTime() != null ?
+                                LocalDateTime.parse(o1.getOrderDateTime(), formatter) : LocalDateTime.MIN;
+                        LocalDateTime date2 = o2.getOrderDateTime() != null ?
+                                LocalDateTime.parse(o2.getOrderDateTime(), formatter) : LocalDateTime.MIN;
+                        return date2.compareTo(date1);
+                    } catch (Exception e) {
+                        return 0;
+                    }
+                })
+                .collect(Collectors.toList());
+    }
 }

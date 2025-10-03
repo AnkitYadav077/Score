@@ -11,4 +11,5 @@ public interface AdminService {
     AdminDto createSubAdmin(CreateSubAdminRequest request, Long parentAdminId);
     List<AdminDto> getSubAdmins(Long adminId);
     void logActivity(Long adminId, String action, String description);
+    List<AdminDto> getAllAdmins();
 }

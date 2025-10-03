@@ -48,6 +48,27 @@ public class JwtHelper {
         return expiration.before(new Date());
     }
 
+    // Overloaded validateToken methods
+    public Boolean validateToken(String token) {
+        try {
+            final String username = getUsernameFromToken(token);
+            return (username != null && !isTokenExpired(token));
+        } catch (Exception e) {
+            System.out.println("Token validation error: " + e.getMessage());
+            return false;
+        }
+    }
+
+    public Boolean validateToken(String token, UserDetails userDetails) {
+        try {
+            final String username = getUsernameFromToken(token);
+            return (username.equals(userDetails.getUsername()) && !isTokenExpired(token));
+        } catch (Exception e) {
+            System.out.println("Token validation with UserDetails error: " + e.getMessage());
+            return false;
+        }
+    }
+
     public String generateToken(UserDetails userDetails) {
         Map<String, Object> claims = new HashMap<>();
 
@@ -79,11 +100,6 @@ public class JwtHelper {
                 .setExpiration(new Date(System.currentTimeMillis() + JWT_TOKEN_VALIDITY * 1000))
                 .signWith(secretKey)
                 .compact();
-    }
-
-    public Boolean validateToken(String token, UserDetails userDetails) {
-        final String username = getUsernameFromToken(token);
-        return (username.equals(userDetails.getUsername()) && !isTokenExpired(token));
     }
 
     public Long getAdminIdFromToken(String token) {

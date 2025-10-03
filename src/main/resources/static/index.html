@@ -353,15 +353,10 @@
         <div class="payment-section active" id="food-order-section">
             <div class="payment-info">
                 <h3>Food Order Payment</h3>
-                <p>Enter your User ID, Cart ID, and Authentication Token to proceed with payment.</p>
+                <p>Enter your Cart ID and Authentication Token to proceed with payment.</p>
             </div>
 
             <div class="input-section">
-                <div class="input-group">
-                    <label for="userIdInput">User ID</label>
-                    <input type="text" id="userIdInput" placeholder="Enter User ID" value="5">
-                </div>
-
                 <div class="input-group">
                     <label for="cartIdInput">Cart Group ID</label>
                     <input type="text" id="cartIdInput" placeholder="Enter Cart Group ID" value="1">
@@ -410,10 +405,6 @@
             <div class="booking-details">
                 <h3 style="margin-bottom: 15px;">Order Summary</h3>
                 <div class="detail-item">
-                    <span class="detail-label">User ID:</span>
-                    <span class="detail-value" id="userIdDisplay">5</span>
-                </div>
-                <div class="detail-item">
                     <span class="detail-label">Cart Group ID:</span>
                     <span class="detail-value" id="cartIdDisplay">1</span>
                 </div>
@@ -450,15 +441,10 @@
         <div class="payment-section" id="slot-booking-section">
             <div class="payment-info">
                 <h3>Slot Booking Payment</h3>
-                <p>Enter your User ID, Slot ID, and Authentication Token to proceed with slot booking payment.</p>
+                <p>Enter your Slot ID and Authentication Token to proceed with slot booking payment.</p>
             </div>
 
             <div class="input-section">
-                <div class="input-group">
-                    <label for="slotUserIdInput">User ID</label>
-                    <input type="text" id="slotUserIdInput" placeholder="Enter User ID" value="5">
-                </div>
-
                 <div class="input-group">
                     <label for="slotIdInput">Slot ID</label>
                     <input type="text" id="slotIdInput" placeholder="Enter Slot ID" value="1">
@@ -506,10 +492,6 @@
 
             <div class="booking-details">
                 <h3 style="margin-bottom: 15px;">Booking Summary</h3>
-                <div class="detail-item">
-                    <span class="detail-label">User ID:</span>
-                    <span class="detail-value" id="slotUserIdDisplay">5</span>
-                </div>
                 <div class="detail-item">
                     <span class="detail-label">Slot ID:</span>
                     <span class="detail-value" id="slotIdDisplay">1</span>
@@ -580,9 +562,7 @@
         const tokenInput = document.getElementById('tokenInput');
         const tokenPreview = document.getElementById('tokenPreview');
         const statusMessageFood = document.getElementById('statusMessageFood');
-        const userIdInput = document.getElementById('userIdInput');
         const cartIdInput = document.getElementById('cartIdInput');
-        const userIdDisplay = document.getElementById('userIdDisplay');
         const cartIdDisplay = document.getElementById('cartIdDisplay');
         const amountDisplay = document.getElementById('amountDisplay');
         const tokenStatusDisplay = document.getElementById('tokenStatusDisplay');
@@ -596,9 +576,7 @@
         const slotTokenInput = document.getElementById('slotTokenInput');
         const slotTokenPreview = document.getElementById('slotTokenPreview');
         const statusMessageSlot = document.getElementById('statusMessageSlot');
-        const slotUserIdInput = document.getElementById('slotUserIdInput');
         const slotIdInput = document.getElementById('slotIdInput');
-        const slotUserIdDisplay = document.getElementById('slotUserIdDisplay');
         const slotIdDisplay = document.getElementById('slotIdDisplay');
         const slotAmountDisplay = document.getElementById('slotAmountDisplay');
         const slotTokenStatusDisplay = document.getElementById('slotTokenStatusDisplay');
@@ -724,7 +702,6 @@
         setupCopyButton(copyTokenBtn, tokenDisplay, (msg, type) => showStatus(msg, type, statusMessageFood));
         setupRefreshButton(refreshTokenBtn, tokenInput, tokenDisplay, tokenStatusDisplay, (msg, type) => showStatus(msg, type, statusMessageFood));
         setupClearButton(clearTokenBtn, tokenInput, tokenDisplay, tokenPreview, tokenStatusDisplay, (msg, type) => showStatus(msg, type, statusMessageFood));
-        setupInputDisplay(userIdInput, userIdDisplay);
         setupInputDisplay(cartIdInput, cartIdDisplay);
 
         // Initialize Slot Booking Section
@@ -732,18 +709,16 @@
         setupCopyButton(copySlotTokenBtn, slotTokenDisplay, (msg, type) => showStatus(msg, type, statusMessageSlot));
         setupRefreshButton(refreshSlotTokenBtn, slotTokenInput, slotTokenDisplay, slotTokenStatusDisplay, (msg, type) => showStatus(msg, type, statusMessageSlot));
         setupClearButton(clearSlotTokenBtn, slotTokenInput, slotTokenDisplay, slotTokenPreview, slotTokenStatusDisplay, (msg, type) => showStatus(msg, type, statusMessageSlot));
-        setupInputDisplay(slotUserIdInput, slotUserIdDisplay);
         setupInputDisplay(slotIdInput, slotIdDisplay);
 
         // Food Order Payment process
         payButtonFood.onclick = async function() {
-            const userId = userIdInput.value;
             const cartGroupId = cartIdInput.value;
             const token = tokenInput.value.trim();
             const currency = "INR";
 
-            if (!userId || !cartGroupId) {
-                showStatus('Please enter both User ID and Cart Group ID', 'error', statusMessageFood);
+            if (!cartGroupId) {
+                showStatus('Please enter Cart Group ID', 'error', statusMessageFood);
                 return;
             }
 
@@ -797,7 +772,6 @@
                                     razorpayOrderId: response.razorpay_order_id,
                                     razorpayPaymentId: response.razorpay_payment_id,
                                     razorpaySignature: response.razorpay_signature,
-                                    userId: parseInt(userId),
                                     amount: data.amount
                                 })
                             });
@@ -834,12 +808,11 @@
 
         // Slot Booking Payment process
         payButtonSlot.onclick = async function() {
-            const userId = slotUserIdInput.value;
             const slotId = slotIdInput.value;
             const token = slotTokenInput.value.trim();
 
-            if (!userId || !slotId) {
-                showStatus('Please enter both User ID and Slot ID', 'error', statusMessageSlot);
+            if (!slotId) {
+                showStatus('Please enter Slot ID', 'error', statusMessageSlot);
                 return;
             }
 
@@ -883,7 +856,7 @@
 
                         try {
                             // Step 3: Verify Payment with Backend
-                            const verifyRes = await fetch(`http://localhost:8080/api/payment/verify/slot?userId=${userId}&slotId=${slotId}&orderId=${response.razorpay_order_id}&paymentId=${response.razorpay_payment_id}&signature=${response.razorpay_signature}`, {
+                            const verifyRes = await fetch(`http://localhost:8080/api/payment/verify/slot?slotId=${slotId}&orderId=${response.razorpay_order_id}&paymentId=${response.razorpay_payment_id}&signature=${response.razorpay_signature}`, {
                                 method: 'POST',
                                 headers: {
                                     'Authorization': `Bearer ${token}`

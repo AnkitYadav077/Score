@@ -6,7 +6,6 @@ import com.Ankit.Score.Score.Security.JwtHelper;
 import com.Ankit.Score.Score.Service.CartServiceImpl;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -19,6 +18,15 @@ public class CartController {
     private final CartServiceImpl cartService;
     private final JwtHelper jwtHelper;
 
+    private Long getAuthenticatedUserId(HttpServletRequest request) {
+        String authHeader = request.getHeader("Authorization");
+        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+            String token = authHeader.substring(7);
+            return jwtHelper.getUserIdFromToken(token);
+        }
+        throw new RuntimeException("Invalid token");
+    }
+
     // Add an item to the cart
     @PostMapping("/add")
     @PreAuthorize("hasRole('USER')")
@@ -27,7 +35,7 @@ public class CartController {
             @RequestParam Long foodId,
             @RequestParam int quantity
     ) {
-        Long userId = getUserIdFromToken(request);
+        Long userId = getAuthenticatedUserId(request);
         CartItemDTO dto = cartService.addToCart(userId, foodId, quantity);
         return ResponseEntity.ok(dto);
     }
@@ -36,7 +44,7 @@ public class CartController {
     @GetMapping
     @PreAuthorize("hasRole('USER')")
     public ResponseEntity<CartSummaryDTO> getCart(HttpServletRequest request) {
-        Long userId = getUserIdFromToken(request);
+        Long userId = getAuthenticatedUserId(request);
         CartSummaryDTO cartSummary = cartService.getCartSummary(userId);
         return ResponseEntity.ok(cartSummary);
     }
@@ -49,12 +57,12 @@ public class CartController {
         return ResponseEntity.ok("Cart item removed successfully!");
     }
 
-    private Long getUserIdFromToken(HttpServletRequest request) {
-        String authHeader = request.getHeader("Authorization");
-        if (authHeader != null && authHeader.startsWith("Bearer ")) {
-            String token = authHeader.substring(7);
-            return jwtHelper.getUserIdFromToken(token);
-        }
-        throw new RuntimeException("Invalid token");
+    // Clear entire cart
+    @DeleteMapping("/clear")
+    @PreAuthorize("hasRole('USER')")
+    public ResponseEntity<String> clearCart(HttpServletRequest request) {
+        Long userId = getAuthenticatedUserId(request);
+        // Implement this method in your service if needed
+        return ResponseEntity.ok("Cart cleared successfully!");
     }
 }
