@@ -11,7 +11,6 @@ import com.razorpay.Order;
 import com.razorpay.RazorpayClient;
 import lombok.RequiredArgsConstructor;
 import org.json.JSONObject;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -25,8 +24,7 @@ public class PaymentServiceImpl implements PaymentService {
     private final RazorpayClient razorpayClient;
     private final PaymentRepo paymentRepository;
     private final SportSlotRepo slotRepo;
-
-
+    private final SportSlotServiceImpl sportSlotService; // Add this dependency
 
     public boolean verifySignature(String orderId, String paymentId, String signature) throws Exception {
         String payload = orderId + "|" + paymentId;
@@ -80,14 +78,12 @@ public class PaymentServiceImpl implements PaymentService {
         SportSlot slot = slotRepo.findById(slotId)
                 .orElseThrow(() -> new ResourceNotFoundException("Slot", "id", slotId));
 
-        int hourRate = (slot.getStartTime().getHour() < 19) ?
-                slot.getCategory().getBasePrice() : slot.getCategory().getEveningPrice();
+        // Use the same calculation as SportSlotServiceImpl
+        Integer totalAmount = sportSlotService.calculateTotalPrice(slot);
+        if (totalAmount == null || totalAmount <= 0) {
+            throw new IllegalStateException("Invalid slot price calculation");
+        }
 
-        // Calculate duration in hours (e.g., 9:00 - 12:00 = 3 hours)
-        long durationHours = java.time.Duration.between(slot.getStartTime(), slot.getEndTime()).toHours();
-        if (durationHours <= 0) durationHours = 1; // Fallback in case of invalid data
-
-        int totalAmount = hourRate * (int) durationHours;
         int amountInPaise = totalAmount * 100;
 
         // Create Razorpay order
@@ -103,7 +99,7 @@ public class PaymentServiceImpl implements PaymentService {
         response.put("orderId", order.get("id"));
         response.put("amount", amountInPaise);
         response.put("currency", currency);
-        response.put("totalPrice", totalAmount); // Optional: Send total price in INR too
+        response.put("totalPrice", totalAmount); // Send total price in INR
 
         return response;
     }
@@ -115,22 +111,34 @@ public class PaymentServiceImpl implements PaymentService {
             throw new IllegalStateException("Payment signature verification failed");
         }
 
+        // Fetch slot and calculate total price using consistent method
+        SportSlot slot = slotRepo.findById(slotId)
+                .orElseThrow(() -> new ResourceNotFoundException("Slot", "id", slotId));
+
+        Integer totalAmount = sportSlotService.calculateTotalPrice(slot);
+        if (totalAmount == null || totalAmount <= 0) {
+            throw new IllegalStateException("Invalid slot price calculation");
+        }
+
+        // Amount verification - Check if paid amount matches expected amount
+        com.razorpay.Payment razorpayPayment = razorpayClient.payments.fetch(paymentId);
+        int paidAmount = Integer.parseInt(razorpayPayment.get("amount").toString());
+        int expectedAmountInPaise = totalAmount * 100;
+
+        if (paidAmount != expectedAmountInPaise) {
+            throw new IllegalStateException("Paid amount doesn't match expected amount. Expected: " + expectedAmountInPaise + ", Paid: " + paidAmount);
+        }
+
         // Payment captured status
         if (!verifyPayment(paymentId)) {
             throw new IllegalStateException("Payment not captured yet");
         }
 
-        // Fetch slot and calculate price
-        SportSlot slot = slotRepo.findById(slotId)
-                .orElseThrow(() -> new ResourceNotFoundException("Slot", "id", slotId));
-        int hour = slot.getStartTime().getHour();
-        int price = (hour < 19) ? slot.getCategory().getBasePrice() : slot.getCategory().getEveningPrice();
-
-        // Save payment
+        // Save payment with correct total amount
         Payment payment = Payment.builder()
                 .userId(userId)
                 .slotId(slotId)
-                .amount((double) price)
+                .amount((double) totalAmount)
                 .paymentMethod("RAZORPAY")
                 .paymentStatus("SUCCESS")
                 .transactionId(paymentId)

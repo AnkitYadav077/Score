@@ -212,7 +212,7 @@ public class SportSlotServiceImpl implements SportSlotService {
         }
     }
 
-    private Integer calculateTotalPrice(SportSlot slot) {
+    Integer calculateTotalPrice(SportSlot slot) {
         LocalTime startTime = slot.getStartTime();
         LocalTime endTime = slot.getEndTime();
         Category category = slot.getCategory();

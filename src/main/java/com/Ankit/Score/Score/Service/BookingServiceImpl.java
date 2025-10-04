@@ -11,7 +11,6 @@ import com.Ankit.Score.Score.Repo.SportSlotRepo;
 import com.Ankit.Score.Score.Repo.UserRepo;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -29,6 +28,7 @@ public class BookingServiceImpl implements BookingService {
     private final PaymentServiceImpl paymentService;
     private final ModelMapper modelMapper;
     private final CategoryRepo categoryRepository;
+    private final SportSlotServiceImpl sportSlotService; // Add this dependency
 
     @Override
     public BookingDto createBookingWithPayment(Long userId, Long slotId, String orderId, String paymentId, String signature) throws Exception {
@@ -43,12 +43,11 @@ public class BookingServiceImpl implements BookingService {
             throw new RuntimeException("Slot already booked");
         }
 
-        // Calculate price
-        int hour = slot.getStartTime().getHour();
-        int totalPrice = (hour < 19) ? slot.getCategory().getBasePrice() : slot.getCategory().getEveningPrice();
-        long durationHours = java.time.Duration.between(slot.getStartTime(), slot.getEndTime()).toHours();
-        if (durationHours <= 0) durationHours = 1;
-        totalPrice *= durationHours;
+        // Calculate price using the SAME method as everywhere else
+        Integer totalPrice = sportSlotService.calculateTotalPrice(slot);
+        if (totalPrice == null || totalPrice <= 0) {
+            throw new RuntimeException("Invalid slot price calculation");
+        }
 
         // Mark slot as booked
         slot.setBooked(true);
